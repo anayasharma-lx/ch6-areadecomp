@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Area Decomposition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0; --surface:#fff; --surface2:#f0ede8; --border:#d8d4cc;
+  --text:#1a1814; --text2:#5a5650; --text3:#9a958e;
+  --blue:#2c5f9e; --red:#c0392b; --green:#1a7a4a; --orange:#e08020;
+  --font:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+  --mono:'DM Mono',ui-monospace,monospace;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);
+  min-height:100vh;-webkit-font-smoothing:antialiased;line-height:1.5;padding:24px 16px}
+.app{max-width:920px;margin:0 auto}
+
+.head{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+.head-ic{width:42px;height:42px;border-radius:10px;background:var(--surface2);
+  border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-weight:600;color:var(--text2);font-size:16px;flex-shrink:0}
+.lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:3px}
+.title{font-size:22px;font-weight:700;color:var(--text);line-height:1.2}
+
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:22px;margin-bottom:16px}
+.card-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:14px}
+
+.intro{font-size:14px;color:var(--text2);line-height:1.65;margin-bottom:18px}
+.intro strong{color:var(--text)}
+
+/* Mode picker */
+.mode-toggle{display:flex;gap:0;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:8px;padding:3px;width:fit-content;margin:0 auto 16px;flex-wrap:wrap}
+.mode-toggle button{padding:8px 16px;border:none;background:transparent;border-radius:6px;
+  font-family:var(--font);font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s}
+.mode-toggle button.active{background:var(--surface);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+
+/* Sliders */
+.sliders{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+@media (max-width:600px){.sliders{grid-template-columns:1fr}}
+.slider-block{padding:12px 14px;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px}
+.slider-block .sb-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.slider-block label{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);min-width:24px}
+.slider-block .val{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--blue);margin-left:auto}
+.slider-block input[type=range]{width:100%;accent-color:var(--blue);height:5px}
+
+/* Stage */
+.stage{background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;
+  padding:24px 20px;overflow-x:auto;display:flex;justify-content:center}
+.stage svg{display:block;max-width:100%;height:auto}
+
+/* Rectangle pieces */
+.piece-ab{fill:#2c5f9e22;stroke:#2c5f9e;stroke-width:1.5}
+.piece-an{fill:#e0802022;stroke:#e08020;stroke-width:1.5}
+.piece-mb{fill:#1a7a4a22;stroke:#1a7a4a;stroke-width:1.5}
+.piece-mn{fill:#7a5cb022;stroke:#7a5cb0;stroke-width:1.5}
+.piece-neg{fill:#c0392b15;stroke:#c0392b;stroke-width:1.5;stroke-dasharray:6 3}
+
+/* Expansion display */
+.expansion{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px;
+  padding:14px 16px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;
+  margin-top:14px;font-family:var(--mono);font-size:18px;font-weight:600;color:var(--text)}
+.expansion .eq, .expansion .op{color:var(--text3)}
+.term-chip{padding:6px 10px;border-radius:7px;border:1.5px solid;font-weight:700}
+.term-ab{background:#2c5f9e18;border-color:#2c5f9e;color:#2c5f9e}
+.term-an{background:#e0802018;border-color:#e08020;color:#e08020}
+.term-mb{background:#1a7a4a18;border-color:#1a7a4a;color:#1a7a4a}
+.term-mn{background:#7a5cb018;border-color:#7a5cb0;color:#7a5cb0}
+.term-neg{background:#c0392b10;border-color:#c0392b;color:#c0392b}
+
+.totals-row{display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin-top:14px;
+  padding:14px 18px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px}
+.total-stat{text-align:center}
+.total-stat .ts-lbl{font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.total-stat .ts-val{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text);line-height:1}
+.total-stat .ts-sub{font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px}
+
+.insight{background:#fff8f0;border:1px solid #f0d8c0;border-left:3px solid var(--orange);
+  border-radius:0 8px 8px 0;padding:12px 15px;font-size:13px;color:#6b4400;
+  line-height:1.65;margin-top:14px}
+.insight strong{color:#4a2e00;font-weight:700}
+
+/* Identity formula reference */
+.identity-card{padding:16px 20px;background:#fff;border:1.5px solid var(--border);border-radius:10px;
+  text-align:center;font-family:var(--mono);font-size:16px;font-weight:600;color:var(--text);margin-bottom:14px}
+.identity-card .id-lbl{font-family:var(--font);font-size:11px;color:var(--text3);font-weight:600;
+  text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="head">
+    <div class="head-ic">6.1</div>
+    <div>
+      <div class="lbl">Chapter 6 · Section 6.1</div>
+      <div class="title">Area Decomposition</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="intro">
+      Multiplication is area. A rectangle with sides <strong>(a + m)</strong> and <strong>(b + n)</strong> splits naturally into four smaller rectangles — and the four areas <strong>add up to the whole</strong>. That's Identity 1. Try changing the sign of m or n: the negative piece becomes a cutout instead of an addition.
+    </p>
+
+    <div class="mode-toggle">
+      <button class="active" data-mode="++">+m  +n</button>
+      <button data-mode="+-">+m  −n</button>
+      <button data-mode="-+">−m  +n</button>
+      <button data-mode="--">−m  −n</button>
+    </div>
+
+    <div class="sliders">
+      <div class="slider-block">
+        <div class="sb-row"><label>a</label><span class="val" id="a-val">6</span></div>
+        <input type="range" id="a" min="2" max="10" value="6">
+        <div class="sb-row" style="margin-top:8px"><label id="m-lbl">m</label><span class="val" id="m-val">3</span></div>
+        <input type="range" id="m" min="1" max="6" value="3">
+      </div>
+      <div class="slider-block">
+        <div class="sb-row"><label>b</label><span class="val" id="b-val">5</span></div>
+        <input type="range" id="b" min="2" max="10" value="5">
+        <div class="sb-row" style="margin-top:8px"><label id="n-lbl">n</label><span class="val" id="n-val">2</span></div>
+        <input type="range" id="n" min="1" max="6" value="2">
+      </div>
+    </div>
+
+    <div class="stage" id="stage"></div>
+
+    <div class="expansion" id="expansion"></div>
+
+    <div class="totals-row">
+      <div class="total-stat">
+        <div class="ts-lbl">Original ab</div>
+        <div class="ts-val" id="orig-val">30</div>
+        <div class="ts-sub" id="orig-sub">6 × 5</div>
+      </div>
+      <div class="total-stat">
+        <div class="ts-lbl">New product</div>
+        <div class="ts-val" id="new-val" style="color:var(--blue)">72</div>
+        <div class="ts-sub" id="new-sub">9 × 8</div>
+      </div>
+      <div class="total-stat">
+        <div class="ts-lbl">Change</div>
+        <div class="ts-val" id="diff-val" style="color:var(--green)">+42</div>
+        <div class="ts-sub" id="diff-sub">mb + an + mn</div>
+      </div>
+    </div>
+
+    <div class="insight" id="insight"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-lbl">The four identities at a glance</div>
+    <div class="identity-card">
+      <div class="id-lbl">Sign convention: signs propagate through every term</div>
+      (a + m)(b + n) = ab + <span style="color:var(--orange)">an</span> + <span style="color:var(--green)">mb</span> + <span style="color:var(--purple)">mn</span><br>
+      (a + m)(b − n) = ab − <span style="color:var(--orange)">an</span> + <span style="color:var(--green)">mb</span> − <span style="color:var(--purple)">mn</span><br>
+      (a − m)(b + n) = ab + <span style="color:var(--orange)">an</span> − <span style="color:var(--green)">mb</span> − <span style="color:var(--purple)">mn</span><br>
+      (a − m)(b − n) = ab − <span style="color:var(--orange)">an</span> − <span style="color:var(--green)">mb</span> + <span style="color:var(--purple)">mn</span>
+    </div>
+    <p class="intro" style="margin-bottom:0">
+      All four follow one rule: <strong>every term of the left bracket multiplies every term of the right bracket</strong>. The sign of each product follows the usual integer rules. The picture changes — some pieces become cutouts — but the algebra is the same identity, just with signs.
+    </p>
+  </div>
+</div>
+
+<script>
+const state = { a:6, b:5, m:3, n:2, mode:'++' };
+
+['a','b','m','n'].forEach(k => {
+  const inp = document.getElementById(k);
+  inp.addEventListener('input', e => {
+    state[k] = +e.target.value;
+    render();
+  });
+});
+
+document.querySelectorAll('.mode-toggle button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.mode-toggle button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    state.mode = b.dataset.mode;
+    render();
+  });
+});
+
+function signs(){
+  // returns [sm, sn] in {+1,-1}
+  return [state.mode[0] === '+' ? 1 : -1, state.mode[1] === '+' ? 1 : -1];
+}
+
+function renderSVG(){
+  const { a, b, m, n } = state;
+  const [sm, sn] = signs();
+  const mEff = sm * m;
+  const nEff = sn * n;
+
+  // We always draw the original a×b block. Additional ±m, ±n strips
+  // are drawn relative to it (extending out or cutting in).
+  const unit = 22;
+  const pad = 50;
+  // Compute extent so SVG is sized correctly. We need room on right for ±m and top for ±n.
+  // Convention: a is horizontal width, b is vertical height. Place origin at top-left of ab block.
+  // If m is + → extend right by m units; if m is − → cut from right by m units (ab block stays).
+  // Similarly n on top: + extends up, − cuts from top.
+
+  // The base "a×b" stays at fixed position. m extends/cuts right edge. n extends/cuts top edge.
+  // Bounding box accounts for both possibilities — we want the SVG large enough.
+  const maxRight = a + Math.max(m, 0);   // for positive m only adds space (extends right)
+  const maxTop = b + Math.max(n, 0);     // positive n extends up
+  // For negative m or n the rect doesn't shrink the bbox (we keep dashed outlines).
+  const svgW = maxRight * unit + 2*pad;
+  const svgH = maxTop * unit + 2*pad + 20;
+
+  // Coordinates (origin top-left of ab block; b is the vertical, so ab block occupies y ∈ [originY .. originY+b*unit])
+  const originX = pad;
+  // For visual layout, place ab at the bottom-left of working area; extensions go up & right.
+  const originY = pad + Math.max(n, 0) * unit;
+
+  let svg = '';
+
+  // 1. AB block (always positive)
+  const abX = originX, abY = originY;
+  const abW = a * unit, abH = b * unit;
+  svg += `<rect x="${abX}" y="${abY}" width="${abW}" height="${abH}" class="piece-ab"/>`;
+  svg += `<text x="${abX + abW/2}" y="${abY + abH/2 + 6}" text-anchor="middle" font-family="DM Mono,monospace" font-size="16" font-weight="700" fill="#2c5f9e">ab</text>`;
+  svg += `<text x="${abX + abW/2}" y="${abY + abH/2 + 24}" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="#5a5650">${a}·${b}=${a*b}</text>`;
+
+  // 2. The "an" strip (right side, height = b, width = m, color = orange)
+  // When m > 0 (positive m): extends to right of ab block.
+  // When m < 0 (negative m): cutout from right of ab block (dashed).
+  if(sm === +1){
+    const x = abX + abW, w = m * unit;
+    svg += `<rect x="${x}" y="${abY}" width="${w}" height="${abH}" class="piece-mb"/>`;
+    svg += `<text x="${x + w/2}" y="${abY + abH/2 + 6}" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" font-weight="700" fill="#1a7a4a">mb</text>`;
+    svg += `<text x="${x + w/2}" y="${abY + abH/2 + 22}" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#5a5650">${m}·${b}=${m*b}</text>`;
+  } else {
+    // cutout from the right edge of ab
+    const w = m * unit;
+    const x = abX + abW - w;
+    svg += `<rect x="${x}" y="${abY}" width="${w}" height="${abH}" class="piece-neg"/>`;
+    svg += `<text x="${x + w/2}" y="${abY + abH/2 + 6}" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" font-weight="700" fill="#c0392b">−mb</text>`;
+    svg += `<text x="${x + w/2}" y="${abY + abH/2 + 22}" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#c0392b">−${m*b}</text>`;
+  }
+
+  // 3. The "mb" → wait I mixed up labels. Let me re-derive:
+  // The textbook diagram: a is rows (vertical), b is columns (horizontal).
+  // Increases: m more rows, n more columns. So
+  //   - ab block: a rows × b cols (top-left)
+  //   - an block: a rows × n cols (top-right, beside ab)  → height a, width n
+  //   - mb block: m rows × b cols (bottom-left, below ab) → height m, width b
+  //   - mn block: m rows × n cols (bottom-right)
+  // But my variables: I have a horizontal=a, vertical=b. Need to align with book.
+  // Let's restart this: horizontal = b (cols), vertical = a (rows). So
+  //   ab block: width b * unit, height a * unit
+  //   an block (height a, width n): to the right of ab
+  //   mb block (height m, width b): below ab
+  //   mn block: bottom-right
+  // I'll rewrite the SVG with correct orientation.
+  return null; // signal to use the rewrite below
+}
+
+function renderSVG2(){
+  const { a, b, m, n } = state;
+  const [sm, sn] = signs();
+
+  // Layout: width = b cols, height = a rows. Extensions: n adds columns on the right; m adds rows on the bottom.
+  const unit = 24;
+  const pad = 50;
+
+  // For positive sign, extension grows the bbox; for negative, it carves out of ab.
+  const extraCols = sn === +1 ? n : 0;
+  const extraRows = sm === +1 ? m : 0;
+  const totalCols = b + extraCols;
+  const totalRows = a + extraRows;
+  const svgW = totalCols * unit + 2*pad;
+  const svgH = totalRows * unit + 2*pad + 20;
+
+  // ab block at top-left
+  const abX = pad, abY = pad;
+  const abW = b * unit, abH = a * unit;
+
+  let svg = '';
+
+  // The "ab" piece
+  svg += `<rect x="${abX}" y="${abY}" width="${abW}" height="${abH}" class="piece-ab"/>`;
+  svg += `<text x="${abX + abW/2}" y="${abY + abH/2 + 2}" text-anchor="middle" font-family="DM Mono,monospace" font-size="18" font-weight="700" fill="#2c5f9e">ab</text>`;
+  svg += `<text x="${abX + abW/2}" y="${abY + abH/2 + 20}" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="#5a5650">${a*b}</text>`;
+
+  // "an" piece (width n, height a). If sn=+1 → right of ab; if sn=-1 → carved from right of ab.
+  const anH = abH;
+  const anW = n * unit;
+  if(sn === +1){
+    const x = abX + abW, y = abY;
+    svg += `<rect x="${x}" y="${y}" width="${anW}" height="${anH}" class="piece-an"/>`;
+    svg += `<text x="${x + anW/2}" y="${y + anH/2 + 2}" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" font-weight="700" fill="#e08020">an</text>`;
+    svg += `<text x="${x + anW/2}" y="${y + anH/2 + 18}" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#5a5650">+${a*n}</text>`;
+  } else {
+    const x = abX + abW - anW, y = abY;
+    svg += `<rect x="${x}" y="${y}" width="${anW}" height="${anH}" class="piece-neg"/>`;
+    svg += `<text x="${x + anW/2}" y="${y + anH/2 + 2}" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" font-weight="700" fill="#c0392b">−an</text>`;
+    svg += `<text x="${x + anW/2}" y="${y + anH/2 + 18}" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#c0392b">−${a*n}</text>`;
+  }
+
+  // "mb" piece (height m, width b). If sm=+1 → below ab; if sm=-1 → carved from bottom of ab.
+  const mbH = m * unit;
+  const mbW = abW;
+  if(sm === +1){
+    const x = abX, y = abY + abH;
+    svg += `<rect x="${x}" y="${y}" width="${mbW}" height="${mbH}" class="piece-mb"/>`;
+    svg += `<text x="${x + mbW/2}" y="${y + mbH/2 + 2}" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" font-weight="700" fill="#1a7a4a">mb</text>`;
+    svg += `<text x="${x + mbW/2}" y="${y + mbH/2 + 18}" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#5a5650">+${m*b}</text>`;
+  } else {
+    const x = abX, y = abY + abH - mbH;
+    svg += `<rect x="${x}" y="${y}" width="${mbW}" height="${mbH}" class="piece-neg"/>`;
+    svg += `<text x="${x + mbW/2}" y="${y + mbH/2 + 2}" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" font-weight="700" fill="#c0392b">−mb</text>`;
+    svg += `<text x="${x + mbW/2}" y="${y + mbH/2 + 18}" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#c0392b">−${m*b}</text>`;
+  }
+
+  // "mn" piece (height m, width n). Position depends on both signs.
+  const mnH = m * unit, mnW = n * unit;
+  let mnX, mnY, mnClass, mnLabel, mnSign;
+  if(sm === +1 && sn === +1){
+    // bottom-right corner (adds)
+    mnX = abX + abW; mnY = abY + abH;
+    mnClass = 'piece-mn'; mnLabel = 'mn'; mnSign = '+';
+  } else if(sm === +1 && sn === -1){
+    // bottom strip cut on right? Actually (a+m)(b-n) → +ab -an +mb -mn. So mn is negative.
+    // It sits at the bottom-right where the cut from "an" overlaps with the "mb" strip.
+    // The "mb" strip extends below ab; we need to cut its right n columns.
+    mnX = abX + abW - mnW; mnY = abY + abH;
+    mnClass = 'piece-neg'; mnLabel = '−mn'; mnSign = '−';
+  } else if(sm === -1 && sn === +1){
+    // (a-m)(b+n) → ab +an -mb -mn. The "an" piece extends right; we cut its bottom m rows.
+    mnX = abX + abW; mnY = abY + abH - mnH;
+    mnClass = 'piece-neg'; mnLabel = '−mn'; mnSign = '−';
+  } else {
+    // (a-m)(b-n) → ab -an -mb +mn. The double-cut "double-subtracted" the corner, so we add it back.
+    // It sits at the bottom-right of ab block (overlapping where both cuts intersected).
+    mnX = abX + abW - mnW; mnY = abY + abH - mnH;
+    mnClass = 'piece-mn'; mnLabel = '+mn'; mnSign = '+';
+  }
+  svg += `<rect x="${mnX}" y="${mnY}" width="${mnW}" height="${mnH}" class="${mnClass}"/>`;
+  const mnTextColor = mnClass === 'piece-neg' ? '#c0392b' : '#7a5cb0';
+  svg += `<text x="${mnX + mnW/2}" y="${mnY + mnH/2 + 2}" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="700" fill="${mnTextColor}">${mnLabel}</text>`;
+  svg += `<text x="${mnX + mnW/2}" y="${mnY + mnH/2 + 18}" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="${mnTextColor}">${mnSign}${m*n}</text>`;
+
+  // Outer dimension labels
+  // Top edge: total width = b (+ or - n)
+  const topY = pad - 16;
+  const topLabel = sn === +1 ? `b + n = ${b}+${n} = ${b+n}` : `b − n = ${b}−${n} = ${b-n}`;
+  svg += `<text x="${pad + (b + extraCols)*unit/2}" y="${topY}" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="700" fill="#1a1814">${topLabel}</text>`;
+  // Left edge: total height = a (+ or - m)
+  const leftX = pad - 16;
+  const leftCenterY = pad + (a + extraRows)*unit/2;
+  const leftLabel = sm === +1 ? `a + m = ${a}+${m} = ${a+m}` : `a − m = ${a}−${m} = ${a-m}`;
+  svg += `<text x="${leftX}" y="${leftCenterY}" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="700" fill="#1a1814" transform="rotate(-90 ${leftX} ${leftCenterY})">${leftLabel}</text>`;
+
+  return `<svg viewBox="0 0 ${svgW} ${svgH}" width="${Math.min(svgW, 820)}">${svg}</svg>`;
+}
+
+function render(){
+  // Update slider value displays
+  document.getElementById('a-val').textContent = state.a;
+  document.getElementById('b-val').textContent = state.b;
+  document.getElementById('m-val').textContent = state.m;
+  document.getElementById('n-val').textContent = state.n;
+
+  const [sm, sn] = signs();
+  document.getElementById('m-lbl').textContent = sm === +1 ? 'm' : 'm  (subtracted)';
+  document.getElementById('n-lbl').textContent = sn === +1 ? 'n' : 'n  (subtracted)';
+
+  // Render SVG
+  document.getElementById('stage').innerHTML = renderSVG2();
+
+  // Build expansion display
+  const { a, b, m, n } = state;
+  const mn_sign = sm * sn; // sign of mn term
+  const exp = document.getElementById('expansion');
+  const ms = sm === +1 ? '+' : '−';
+  const ns = sn === +1 ? '+' : '−';
+  const mn_s = mn_sign === +1 ? '+' : '−';
+  exp.innerHTML = `
+    <span>(a ${ms} m)(b ${ns} n)</span>
+    <span class="eq">=</span>
+    <span class="term-chip term-ab">ab</span>
+    <span class="op">${ns}</span>
+    <span class="term-chip term-an">an</span>
+    <span class="op">${ms}</span>
+    <span class="term-chip term-mb">mb</span>
+    <span class="op">${mn_s}</span>
+    <span class="term-chip ${mn_sign === +1 ? 'term-mn' : 'term-neg'}">mn</span>
+  `;
+
+  // Numeric totals
+  const newA = a + sm*m, newB = b + sn*n;
+  const orig = a * b;
+  const ne = newA * newB;
+  const diff = ne - orig;
+  document.getElementById('orig-val').textContent = orig;
+  document.getElementById('orig-sub').textContent = `${a} × ${b}`;
+  document.getElementById('new-val').textContent = ne;
+  document.getElementById('new-sub').textContent = `${newA} × ${newB}`;
+  document.getElementById('diff-val').textContent = (diff >= 0 ? '+' : '') + diff;
+  document.getElementById('diff-val').style.color = diff >= 0 ? 'var(--green)' : 'var(--red)';
+
+  // Build change formula
+  const anTerm = sn*a*n;
+  const mbTerm = sm*m*b;
+  const mnTerm = mn_sign*m*n;
+  const parts = [];
+  parts.push(`${anTerm >= 0 ? '+' : ''}${anTerm}`);
+  parts.push(`${mbTerm >= 0 ? '+' : ''}${mbTerm}`);
+  parts.push(`${mnTerm >= 0 ? '+' : ''}${mnTerm}`);
+  document.getElementById('diff-sub').textContent = parts.join(' ');
+
+  // Insight
+  const ins = document.getElementById('insight');
+  if(state.mode === '++'){
+    ins.innerHTML = `Adding to both sides: the rectangle grows by an <strong>L-shape</strong> of three new pieces — <strong>an</strong> on the right, <strong>mb</strong> at the bottom, and <strong>mn</strong> filling the corner. That's why the change is <strong>an + mb + mn</strong>, not just an + mb.`;
+  } else if(state.mode === '+-'){
+    ins.innerHTML = `Adding m rows but cutting n columns: the new piece <strong>mb</strong> is added at the bottom, but a chunk <strong>an</strong> is removed from the right. Where they overlap, the corner <strong>mn</strong> would be double-cut — so it ends up subtracted once overall.`;
+  } else if(state.mode === '-+'){
+    ins.innerHTML = `Cutting m rows but adding n columns: <strong>an</strong> is added on the right, <strong>mb</strong> is cut from the bottom. The corner <strong>mn</strong> overlaps both moves and ends up subtracted once.`;
+  } else {
+    ins.innerHTML = `Cutting both ways: <strong>mb</strong> and <strong>an</strong> are both removed, but they overlap at the corner. That corner <strong>mn</strong> was removed twice — so we must add it back once. This is exactly the inclusion-exclusion idea.`;
+  }
+}
+
+render();
+</script>
+</body>
+</html>
