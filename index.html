@@ -3,437 +3,532 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Area Decomposition</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<title>Area Decomposition — Ch 6.1</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#f5f4f0; --surface:#fff; --surface2:#f0ede8; --border:#d8d4cc;
-  --text:#1a1814; --text2:#5a5650; --text3:#9a958e;
-  --blue:#2c5f9e; --red:#c0392b; --green:#1a7a4a; --orange:#e08020;
-  --font:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;
-  --mono:'DM Mono',ui-monospace,monospace;
+  --bg:#06080f;--surface:#0e1420;--surface2:#151c2e;
+  --border:#1e2d4a;--border2:#253558;
+  --gold:#f5b942;--gold-dim:rgba(245,185,66,.14);--gold-glow:rgba(245,185,66,.35);
+  --orange:#f97316;--orange-dim:rgba(249,115,22,.13);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,.12);
+  --red:#f87171;--red-dim:rgba(248,113,113,.12);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,.12);
+  --green:#34d399;--green-dim:rgba(52,211,153,.12);
+  --violet:#a78bfa;--violet-dim:rgba(167,139,250,.12);
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#475569;
+  --sans:'Syne',system-ui,sans-serif;--mono:'DM Mono',ui-monospace,monospace;
 }
-body{font-family:var(--font);background:var(--bg);color:var(--text);
-  min-height:100vh;-webkit-font-smoothing:antialiased;line-height:1.5;padding:24px 16px}
-.app{max-width:920px;margin:0 auto}
+html,body{width:100%;min-height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+body{display:flex;flex-direction:column}
 
-.head{display:flex;align-items:center;gap:14px;margin-bottom:24px}
-.head-ic{width:42px;height:42px;border-radius:10px;background:var(--surface2);
-  border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;
-  font-family:var(--mono);font-weight:600;color:var(--text2);font-size:16px;flex-shrink:0}
-.lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:3px}
-.title{font-size:22px;font-weight:700;color:var(--text);line-height:1.2}
+/* TOP */
+.top{flex-shrink:0;border-bottom:1px solid var(--border);background:var(--surface);padding:12px 22px;display:flex;align-items:center;gap:16px}
+.top-badge{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--teal);background:var(--teal-dim);border:1px solid var(--teal);border-radius:4px;padding:3px 8px;letter-spacing:.08em;flex-shrink:0}
+.top-title{font-size:20px;font-weight:800;color:var(--text);letter-spacing:-.02em;flex:1}
+.top-formula{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text2);letter-spacing:.02em}
 
-.card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:22px;margin-bottom:16px}
-.card-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:14px}
+/* MAIN */
+.main{flex:1;display:grid;grid-template-columns:200px 1fr 280px;min-height:calc(100vh - 53px)}
 
-.intro{font-size:14px;color:var(--text2);line-height:1.65;margin-bottom:18px}
-.intro strong{color:var(--text)}
+/* LEFT */
+.left{border-right:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;padding:18px 14px;gap:16px;overflow-y:auto}
+.panel-lbl{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
 
-/* Mode picker */
-.mode-toggle{display:flex;gap:0;background:var(--surface2);border:1.5px solid var(--border);
-  border-radius:8px;padding:3px;width:fit-content;margin:0 auto 16px;flex-wrap:wrap}
-.mode-toggle button{padding:8px 16px;border:none;background:transparent;border-radius:6px;
-  font-family:var(--font);font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s}
-.mode-toggle button.active{background:var(--surface);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.sl-group{display:flex;flex-direction:column;gap:10px}
+.sl-item{display:flex;flex-direction:column;gap:4px}
+.sl-header{display:flex;justify-content:space-between;align-items:baseline}
+.sl-name{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text)}
+.sl-val{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--teal);min-width:32px;text-align:right;transition:color .2s}
+input[type=range]{width:100%;accent-color:var(--teal);height:4px;cursor:pointer}
 
-/* Sliders */
-.sliders{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
-@media (max-width:600px){.sliders{grid-template-columns:1fr}}
-.slider-block{padding:12px 14px;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px}
-.slider-block .sb-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-.slider-block label{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);min-width:24px}
-.slider-block .val{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--blue);margin-left:auto}
-.slider-block input[type=range]{width:100%;accent-color:var(--blue);height:5px}
+/* Sign pickers */
+.sign-row{display:flex;gap:6px}
+.sign-btn{flex:1;padding:8px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;
+  cursor:pointer;font-family:var(--mono);font-size:16px;font-weight:700;color:var(--text2);
+  text-align:center;transition:all .14s}
+.sign-btn:hover{border-color:var(--border2);color:var(--text)}
+.sign-btn.active-pos{background:var(--green-dim);border-color:var(--green);color:var(--green)}
+.sign-btn.active-neg{background:var(--red-dim);border-color:var(--red);color:var(--red)}
 
-/* Stage */
-.stage{background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;
-  padding:24px 20px;overflow-x:auto;display:flex;justify-content:center}
-.stage svg{display:block;max-width:100%;height:auto}
+/* Piece toggles */
+.piece-toggles{display:flex;flex-direction:column;gap:5px}
+.piece-toggle{padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;
+  cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .14s;font-family:var(--mono)}
+.pt-swatch{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+.pt-name{font-size:12px;font-weight:700;color:var(--text);flex:1}
+.pt-val{font-size:12px;color:var(--text2)}
+.piece-toggle.sel{box-shadow:0 0 0 1.5px currentColor}
 
-/* Rectangle pieces */
-.piece-ab{fill:#2c5f9e22;stroke:#2c5f9e;stroke-width:1.5}
-.piece-an{fill:#e0802022;stroke:#e08020;stroke-width:1.5}
-.piece-mb{fill:#1a7a4a22;stroke:#1a7a4a;stroke-width:1.5}
-.piece-mn{fill:#7a5cb022;stroke:#7a5cb0;stroke-width:1.5}
-.piece-neg{fill:#c0392b15;stroke:#c0392b;stroke-width:1.5;stroke-dasharray:6 3}
+/* Product display */
+.product-box{padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;text-align:center;display:flex;flex-direction:column;gap:5px}
+.pb-dims{font-family:var(--mono);font-size:14px;color:var(--text2)}
+.pb-product{font-family:var(--mono);font-size:34px;font-weight:700;color:var(--teal);transition:all .25s;text-shadow:0 0 18px rgba(45,212,191,.4)}
+.pb-eq{font-family:var(--mono);font-size:13px;color:var(--text2)}
 
-/* Expansion display */
-.expansion{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px;
-  padding:14px 16px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;
-  margin-top:14px;font-family:var(--mono);font-size:18px;font-weight:600;color:var(--text)}
-.expansion .eq, .expansion .op{color:var(--text3)}
-.term-chip{padding:6px 10px;border-radius:7px;border:1.5px solid;font-weight:700}
-.term-ab{background:#2c5f9e18;border-color:#2c5f9e;color:#2c5f9e}
-.term-an{background:#e0802018;border-color:#e08020;color:#e08020}
-.term-mb{background:#1a7a4a18;border-color:#1a7a4a;color:#1a7a4a}
-.term-mn{background:#7a5cb018;border-color:#7a5cb0;color:#7a5cb0}
-.term-neg{background:#c0392b10;border-color:#c0392b;color:#c0392b}
+/* CENTER */
+.center{background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;position:relative;overflow:hidden}
+#cvs{display:block}
 
-.totals-row{display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin-top:14px;
-  padding:14px 18px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px}
-.total-stat{text-align:center}
-.total-stat .ts-lbl{font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
-.total-stat .ts-val{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text);line-height:1}
-.total-stat .ts-sub{font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px}
+/* EXPANSION at bottom of center */
+.expansion{margin-top:16px;padding:12px 18px;background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  display:flex;align-items:center;flex-wrap:wrap;gap:6px;font-family:var(--mono);font-size:15px;font-weight:700;
+  width:100%;max-width:640px;justify-content:center}
+.exp-piece{display:inline-flex;align-items:center;gap:3px;padding:5px 10px;border-radius:6px;border:1.5px solid;font-weight:700;transition:all .25s}
+.exp-op{color:var(--text3);padding:0 3px;font-size:18px}
+.exp-eq{color:var(--text3);font-size:16px;padding:0 6px}
+.exp-total{font-size:20px;font-weight:800;color:var(--teal);padding:4px 14px;background:var(--teal-dim);border:1.5px solid var(--teal);border-radius:6px}
 
-.insight{background:#fff8f0;border:1px solid #f0d8c0;border-left:3px solid var(--orange);
-  border-radius:0 8px 8px 0;padding:12px 15px;font-size:13px;color:#6b4400;
-  line-height:1.65;margin-top:14px}
-.insight strong{color:#4a2e00;font-weight:700}
+/* RIGHT */
+.right{border-left:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;padding:18px 14px;gap:14px;overflow-y:auto}
 
-/* Identity formula reference */
-.identity-card{padding:16px 20px;background:#fff;border:1.5px solid var(--border);border-radius:10px;
-  text-align:center;font-family:var(--mono);font-size:16px;font-weight:600;color:var(--text);margin-bottom:14px}
-.identity-card .id-lbl{font-family:var(--font);font-size:11px;color:var(--text3);font-weight:600;
-  text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.identity-table{display:flex;flex-direction:column;gap:4px}
+.id-row{display:flex;align-items:center;gap:6px;padding:8px 10px;background:var(--surface2);border-radius:6px;font-family:var(--mono);font-size:12px;cursor:pointer;transition:all .14s;border:1px solid transparent}
+.id-row:hover{border-color:var(--border2)}
+.id-row.current{border-color:var(--teal);background:var(--teal-dim)}
+.id-row .ir-mode{font-size:10px;font-weight:700;color:var(--text3);min-width:30px;letter-spacing:.06em}
+.id-row .ir-formula{flex:1;color:var(--text2)}
+.id-row .ir-result{font-weight:700;color:var(--teal)}
 
+.insight-card{padding:13px;background:var(--gold-dim);border:1px solid var(--gold);border-radius:7px;border-left:3px solid var(--gold);font-size:12px;color:var(--text2);line-height:1.7}
+.insight-card strong{color:var(--gold)}
+
+.four-parts{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.fp-cell{padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;text-align:center}
+.fp-label{font-family:var(--mono);font-size:13px;font-weight:700;margin-bottom:3px}
+.fp-desc{font-size:11px;color:var(--text3)}
+
+/* Mobile */
+@media(max-width:900px){
+  html,body{overflow:auto;height:auto}
+  body{position:static;display:flex;flex-direction:column;min-height:100dvh}
+  .main{grid-template-columns:1fr;grid-template-rows:auto 280px auto auto auto;overflow:visible}
+  .left{border-right:none;border-bottom:1px solid var(--border);max-height:none}
+  .right{border-left:none;border-bottom:1px solid var(--border);max-height:none}
+  .center{height:280px;overflow:hidden;display:block}
+  #cvs{width:100%;height:240px}
+  .expansion{max-width:100%;border-radius:0;border-left:none;border-right:none}
+  .top-formula{display:none}
+  .four-parts{grid-template-columns:1fr 1fr}
+}
+@media(max-width:480px){
+  .left{padding:12px 10px}
+  .sl-val{font-size:17px}
+  .sl-name{font-size:13px}
+  .sign-btn{font-size:14px;padding:7px 5px}
+}
 </style>
 </head>
 <body>
-<div class="app">
-  <div class="head">
-    <div class="head-ic">6.1</div>
+
+<div class="top">
+  <div class="top-badge">CH 6.1</div>
+  <div class="top-title">Area Decomposition</div>
+  <div class="top-formula">(a±m)(b±n) = ab ± an ± mb + mn</div>
+</div>
+
+<div class="main">
+
+  <!-- LEFT -->
+  <div class="left">
     <div>
-      <div class="lbl">Chapter 6 · Section 6.1</div>
-      <div class="title">Area Decomposition</div>
+      <div class="panel-lbl">Rectangle sides</div>
+      <div class="sl-group">
+        <div class="sl-item">
+          <div class="sl-header"><span class="sl-name">a</span><span class="sl-val" id="av">6</span></div>
+          <input type="range" id="a" min="2" max="10" value="6">
+        </div>
+        <div class="sl-item">
+          <div class="sl-header"><span class="sl-name">b</span><span class="sl-val" id="bv">5</span></div>
+          <input type="range" id="b" min="2" max="10" value="5">
+        </div>
+        <div class="sl-item">
+          <div class="sl-header"><span class="sl-name" id="m-lbl">+m</span><span class="sl-val" id="mv">3</span></div>
+          <input type="range" id="m" min="1" max="6" value="3">
+        </div>
+        <div class="sl-item">
+          <div class="sl-header"><span class="sl-name" id="n-lbl">+n</span><span class="sl-val" id="nv">2</span></div>
+          <input type="range" id="n" min="1" max="6" value="2">
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel-lbl">Signs</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px">m direction</div>
+          <div class="sign-row">
+            <button class="sign-btn active-pos" data-sign="sm" data-val="+1">+m</button>
+            <button class="sign-btn" data-sign="sm" data-val="-1">−m</button>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px">n direction</div>
+          <div class="sign-row">
+            <button class="sign-btn active-pos" data-sign="sn" data-val="+1">+n</button>
+            <button class="sign-btn" data-sign="sn" data-val="-1">−n</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel-lbl">Click a piece</div>
+      <div class="piece-toggles" id="piece-toggles"></div>
+    </div>
+
+    <div class="product-box">
+      <div class="pb-dims" id="pb-dims">(6+3)(5+2)</div>
+      <div class="pb-product" id="pb-product">72</div>
+      <div class="pb-eq" id="pb-eq">= 9 × 7</div>
     </div>
   </div>
 
-  <div class="card">
-    <p class="intro">
-      Multiplication is area. A rectangle with sides <strong>(a + m)</strong> and <strong>(b + n)</strong> splits naturally into four smaller rectangles — and the four areas <strong>add up to the whole</strong>. That's Identity 1. Try changing the sign of m or n: the negative piece becomes a cutout instead of an addition.
-    </p>
-
-    <div class="mode-toggle">
-      <button class="active" data-mode="++">+m  +n</button>
-      <button data-mode="+-">+m  −n</button>
-      <button data-mode="-+">−m  +n</button>
-      <button data-mode="--">−m  −n</button>
-    </div>
-
-    <div class="sliders">
-      <div class="slider-block">
-        <div class="sb-row"><label>a</label><span class="val" id="a-val">6</span></div>
-        <input type="range" id="a" min="2" max="10" value="6">
-        <div class="sb-row" style="margin-top:8px"><label id="m-lbl">m</label><span class="val" id="m-val">3</span></div>
-        <input type="range" id="m" min="1" max="6" value="3">
-      </div>
-      <div class="slider-block">
-        <div class="sb-row"><label>b</label><span class="val" id="b-val">5</span></div>
-        <input type="range" id="b" min="2" max="10" value="5">
-        <div class="sb-row" style="margin-top:8px"><label id="n-lbl">n</label><span class="val" id="n-val">2</span></div>
-        <input type="range" id="n" min="1" max="6" value="2">
-      </div>
-    </div>
-
-    <div class="stage" id="stage"></div>
-
+  <!-- CENTER -->
+  <div class="center">
+    <canvas id="cvs"></canvas>
     <div class="expansion" id="expansion"></div>
-
-    <div class="totals-row">
-      <div class="total-stat">
-        <div class="ts-lbl">Original ab</div>
-        <div class="ts-val" id="orig-val">30</div>
-        <div class="ts-sub" id="orig-sub">6 × 5</div>
-      </div>
-      <div class="total-stat">
-        <div class="ts-lbl">New product</div>
-        <div class="ts-val" id="new-val" style="color:var(--blue)">72</div>
-        <div class="ts-sub" id="new-sub">9 × 8</div>
-      </div>
-      <div class="total-stat">
-        <div class="ts-lbl">Change</div>
-        <div class="ts-val" id="diff-val" style="color:var(--green)">+42</div>
-        <div class="ts-sub" id="diff-sub">mb + an + mn</div>
-      </div>
-    </div>
-
-    <div class="insight" id="insight"></div>
   </div>
 
-  <div class="card">
-    <div class="card-lbl">The four identities at a glance</div>
-    <div class="identity-card">
-      <div class="id-lbl">Sign convention: signs propagate through every term</div>
-      (a + m)(b + n) = ab + <span style="color:var(--orange)">an</span> + <span style="color:var(--green)">mb</span> + <span style="color:var(--purple)">mn</span><br>
-      (a + m)(b − n) = ab − <span style="color:var(--orange)">an</span> + <span style="color:var(--green)">mb</span> − <span style="color:var(--purple)">mn</span><br>
-      (a − m)(b + n) = ab + <span style="color:var(--orange)">an</span> − <span style="color:var(--green)">mb</span> − <span style="color:var(--purple)">mn</span><br>
-      (a − m)(b − n) = ab − <span style="color:var(--orange)">an</span> − <span style="color:var(--green)">mb</span> + <span style="color:var(--purple)">mn</span>
+  <!-- RIGHT -->
+  <div class="right">
+    <div>
+      <div class="panel-lbl">All four sign cases</div>
+      <div class="identity-table" id="id-table"></div>
     </div>
-    <p class="intro" style="margin-bottom:0">
-      All four follow one rule: <strong>every term of the left bracket multiplies every term of the right bracket</strong>. The sign of each product follows the usual integer rules. The picture changes — some pieces become cutouts — but the algebra is the same identity, just with signs.
-    </p>
+
+    <div>
+      <div class="panel-lbl">The four pieces</div>
+      <div class="four-parts">
+        <div class="fp-cell"><div class="fp-label" style="color:var(--blue)">ab</div><div class="fp-desc">Original rectangle</div></div>
+        <div class="fp-cell"><div class="fp-label" style="color:var(--orange)">an</div><div class="fp-desc">a rows × n cols</div></div>
+        <div class="fp-cell"><div class="fp-label" style="color:var(--green)">mb</div><div class="fp-desc">m rows × b cols</div></div>
+        <div class="fp-cell"><div class="fp-label" style="color:var(--violet)">mn</div><div class="fp-desc">m rows × n cols (corner)</div></div>
+      </div>
+    </div>
+
+    <div class="insight-card" id="insight-card">
+      <strong>The corner piece mn:</strong> when both signs are the same (both + or both −), the corner adds. When signs differ, the corner subtracts. The picture explains <em>why</em> — the corner piece is either added by the extension, removed by the cutout, or doubly removed and then added back.
+    </div>
   </div>
 </div>
 
 <script>
-const state = { a:6, b:5, m:3, n:2, mode:'++' };
+const state = {a:6,b:5,m:3,n:2,sm:+1,sn:+1,sel:null};
+const PR = Math.min(window.devicePixelRatio||1,2);
+const cvs = document.getElementById('cvs');
+const ctx = cvs.getContext('2d');
+const C={
+  blue:'#60a5fa',orange:'#f97316',green:'#34d399',violet:'#a78bfa',
+  red:'#f87171',teal:'#2dd4bf',gold:'#f5b942',
+  text:'#e2e8f0',text2:'#94a3b8',text3:'#475569',
+  bg:'#06080f',surface:'#0e1420',surface2:'#151c2e',border:'#1e2d4a',
+};
+const PIECES = {
+  ab:  {label:'ab',  color:C.blue,   name:'ab (original)'},
+  an:  {label:'an',  color:C.orange, name:'an (side)'},
+  mb:  {label:'mb',  color:C.green,  name:'mb (strip)'},
+  mn:  {label:'mn',  color:C.violet, name:'mn (corner)'},
+};
 
-['a','b','m','n'].forEach(k => {
-  const inp = document.getElementById(k);
-  inp.addEventListener('input', e => {
-    state[k] = +e.target.value;
-    render();
+function resize(){
+  const wrap = cvs.parentElement;
+  const W = wrap.clientWidth;
+  const isMobile = window.innerWidth <= 900;
+  const H = isMobile ? 240 : Math.max(Math.min(wrap.clientHeight - ((document.querySelector('.expansion')||{offsetHeight:0}).offsetHeight||0), 480), 200);
+  cvs.width=W*PR; cvs.height=H*PR;
+  cvs.style.width=W+'px'; cvs.style.height=H+'px';
+  ctx.resetTransform(); ctx.scale(PR,PR);
+  draw();
+}
+new ResizeObserver(resize).observe(cvs.parentElement);
+
+function draw(){
+  const W=cvs.clientWidth, H=cvs.clientHeight;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=C.bg; ctx.fillRect(0,0,W,H);
+
+  const {a,b,m,n,sm,sn,sel}=state;
+  const pad = Math.min(50, Math.floor(H*0.10), Math.floor(W*0.08));
+
+  // Layout: width = b units + n units; height = a units + m units
+  const maxU = Math.min(
+    Math.floor((W-pad*3)/(b+n)),
+    Math.floor((H-pad*2.5)/(a+m)),
+    46
+  );
+  const unit = Math.max(maxU, 12);
+  // Clamp origins so grid fits in canvas
+  const gridTotalW = (b+n)*unit, gridTotalH = (a+m)*unit;
+  const ox = gridTotalW > W-pad ? pad : Math.max(pad, (W-gridTotalW)/2);
+  const oy = gridTotalH > H-pad ? Math.max(pad, (H-gridTotalH)/2) : Math.max(pad, (H-gridTotalH)/2);
+  const abW = b*unit, abH = a*unit;
+  const anW = n*unit, anH = a*unit;    // right of ab
+  const mbW = b*unit, mbH = m*unit;    // below ab
+  const mnW = n*unit, mnH = m*unit;    // corner
+
+  // Signs determine where pieces go
+  // sm=+1: mb extends DOWN below ab; sm=-1: mb is cut FROM ab (bottom portion)
+  // sn=+1: an extends RIGHT of ab;   sn=-1: an is cut FROM ab (right portion)
+  const smn = sm * sn; // sign of mn term
+
+  function rr(x,y,w,h,fill,stroke,alpha=1,dash=false){
+    ctx.save();
+    ctx.globalAlpha=alpha;
+    if(dash) ctx.setLineDash([6,4]);
+    ctx.beginPath(); ctx.rect(x,y,w,h);
+    if(fill){ ctx.fillStyle=fill; ctx.fill(); }
+    if(stroke){ ctx.strokeStyle=stroke; ctx.lineWidth=2; ctx.stroke(); }
+    ctx.restore();
+  }
+
+  function txt(text,x,y,size,color,align='center',baseline='middle',weight='700'){
+    ctx.font=`${weight} ${size}px DM Mono,monospace`;
+    ctx.fillStyle=color; ctx.textAlign=align; ctx.textBaseline=baseline;
+    ctx.fillText(text,x,y);
+  }
+
+  function piece(key,x,y,w,h,sign){
+    const p=PIECES[key];
+    const isPos = sign>0;
+    const col = isPos ? p.color : C.red;
+    const selMatch = sel===key;
+    const baseAlpha = selMatch ? 0.4 : 0.18;
+    const glow = selMatch ? 0.9 : 0.7;
+    rr(x,y,w,h, col+(isPos?'30':'20'), col+'bb'+(selMatch?'':'88'), 1, !isPos);
+    if(selMatch){
+      ctx.save();ctx.shadowColor=col;ctx.shadowBlur=18;
+      ctx.strokeStyle=col;ctx.lineWidth=2.5;ctx.beginPath();ctx.rect(x,y,w,h);ctx.stroke();
+      ctx.restore();
+    }
+    // Label
+    if(w>30 && h>24){
+      const sign_str = isPos ? '' : '−';
+      txt(sign_str+p.label, x+w/2, y+h/2-7, Math.min(14,w/3.5), col);
+      const numVal = Math.abs(getTermValue(key));
+      txt((isPos?'+':'-')+numVal, x+w/2, y+h/2+10, Math.min(11,w/4.5), col+'cc', 'center','middle','400');
+    }
+  }
+
+  function getTermValue(key){
+    const {a,b,m,n,sm,sn}=state;
+    const smn=sm*sn;
+    if(key==='ab') return a*b;
+    if(key==='an') return sn*a*n;
+    if(key==='mb') return sm*m*b;
+    if(key==='mn') return smn*m*n;
+    return 0;
+  }
+
+  // Positions of the 4 pieces
+  const abX=ox, abY=oy;
+  let anX,anY,mbX,mbY,mnX,mnY;
+  if(sn===+1){ anX=ox+abW; anY=oy; }
+  else        { anX=ox+abW-anW; anY=oy; }
+  if(sm===+1){ mbX=ox; mbY=oy+abH; }
+  else        { mbX=ox; mbY=oy+abH-mbH; }
+  if(sm===+1 && sn===+1){ mnX=ox+abW; mnY=oy+abH; }
+  else if(sm===+1 && sn===-1){ mnX=ox+abW-mnW; mnY=oy+abH; }
+  else if(sm===-1 && sn===+1){ mnX=ox+abW; mnY=oy+abH-mnH; }
+  else { mnX=ox+abW-mnW; mnY=oy+abH-mnH; }
+
+  // Draw pieces (back to front)
+  piece('ab',abX,abY,abW,abH,+1);
+  piece('an',anX,anY,anW,anH,sn);
+  piece('mb',mbX,mbY,mbW,mbH,sm);
+  piece('mn',mnX,mnY,mnW,mnH,smn);
+
+  // Outer bounding box
+  const boxX = sn===+1?ox:ox; // same for both
+  const boxY = sm===+1?oy:oy;
+  const boxW = sn===+1?(b+n)*unit:b*unit;
+  const boxH = sm===+1?(a+m)*unit:a*unit;
+  ctx.save();ctx.setLineDash([4,4]);
+  ctx.strokeStyle=C.teal+'55';ctx.lineWidth=1;
+  ctx.beginPath();ctx.rect(ox,oy,(b+n)*unit,(a+m)*unit);ctx.stroke();
+  ctx.restore();
+
+  // Dimension labels
+  const A2=a+(sm===+1?m:-m), B2=b+(sn===+1?n:-n);
+  const topLabel=`${B2}`;
+  const leftLabel=`${A2}`;
+  txt(`(b${sn===+1?'+':'-'}n) = ${topLabel}`, ox+(b+n)*unit/2, oy-16, 12, C.teal);
+  ctx.save();ctx.translate(ox-20, oy+(a+m)*unit/2);ctx.rotate(-Math.PI/2);
+  txt(`(a${sm===+1?'+':'-'}m) = ${leftLabel}`, 0, 0, 12, C.teal);ctx.restore();
+
+  // Division lines
+  ctx.save();ctx.setLineDash([3,3]);ctx.strokeStyle=C.text3+'66';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(ox+abW,oy);ctx.lineTo(ox+abW,oy+(a+m)*unit);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(ox,oy+abH);ctx.lineTo(ox+(b+n)*unit,oy+abH);ctx.stroke();
+  ctx.restore();
+
+  updateToggles();
+}
+
+function buildIdTable(){
+  const tbl=document.getElementById('id-table');
+  const modes=[
+    {sm:+1,sn:+1,label:'(a+m)(b+n)'},
+    {sm:+1,sn:-1,label:'(a+m)(b−n)'},
+    {sm:-1,sn:+1,label:'(a−m)(b+n)'},
+    {sm:-1,sn:-1,label:'(a−m)(b−n)'},
+  ];
+  tbl.innerHTML='';
+  modes.forEach(md=>{
+    const {a,b,m,n}=state;
+    const smn=md.sm*md.sn;
+    const result=(a+md.sm*m)*(b+md.sn*n);
+    const terms=[
+      `ab`,
+      `${md.sn>0?'+':'-'}an`,
+      `${md.sm>0?'+':'-'}mb`,
+      `${smn>0?'+':'-'}mn`,
+    ].join(' ');
+    const isCur=state.sm===md.sm&&state.sn===md.sn;
+    const row=document.createElement('div');
+    row.className='id-row'+(isCur?' current':'');
+    row.innerHTML=`<span class="ir-mode">${md.sm>0?'+':'-'}${md.sn>0?'+':'-'}</span><span class="ir-formula">${md.label} = ${terms}</span><span class="ir-result">${result}</span>`;
+    row.addEventListener('click',()=>{
+      state.sm=md.sm;state.sn=md.sn;
+      updateSignBtns();updateAll();
+    });
+    tbl.appendChild(row);
+  });
+}
+
+function updateSignBtns(){
+  document.querySelectorAll('[data-sign="sm"]').forEach(b=>{
+    const v=+b.dataset.val;
+    b.classList.remove('active-pos','active-neg');
+    if(v===state.sm) b.classList.add(v>0?'active-pos':'active-neg');
+  });
+  document.querySelectorAll('[data-sign="sn"]').forEach(b=>{
+    const v=+b.dataset.val;
+    b.classList.remove('active-pos','active-neg');
+    if(v===state.sn) b.classList.add(v>0?'active-pos':'active-neg');
+  });
+}
+
+function updateToggles(){
+  const ctr=document.getElementById('piece-toggles');
+  ctr.innerHTML='';
+  ['ab','an','mb','mn'].forEach(key=>{
+    const p=PIECES[key];
+    const smn=state.sm*state.sn;
+    const signs={ab:+1,an:state.sn,mb:state.sm,mn:smn};
+    const sign=signs[key];
+    const col=sign>0?p.color:C.red;
+    const val=Math.abs(key==='ab'?state.a*state.b:key==='an'?state.a*state.n:key==='mb'?state.m*state.b:state.m*state.n);
+    const el=document.createElement('div');
+    el.className='piece-toggle'+(state.sel===key?' sel':'');
+    el.style.borderColor=state.sel===key?col:'';
+    el.style.color=col;
+    el.innerHTML=`<div class="pt-swatch" style="background:${col}40;border:1.5px solid ${col}"></div>
+      <div class="pt-name">${sign>0?'+':'-'}${p.label}</div>
+      <div class="pt-val">${sign>0?'+':'-'}${val}</div>`;
+    el.addEventListener('click',()=>{
+      state.sel=state.sel===key?null:key;
+      draw();updateToggles();
+    });
+    ctr.appendChild(el);
+  });
+}
+
+function updateExpansion(){
+  const {a,b,m,n,sm,sn}=state;
+  const smn=sm*sn;
+  const terms=[
+    {key:'ab',sign:+1,val:a*b,col:C.blue},
+    {key:'an',sign:sn,val:a*n,col:C.orange},
+    {key:'mb',sign:sm,val:m*b,col:C.green},
+    {key:'mn',sign:smn,val:m*n,col:C.violet},
+  ];
+  const total=(a+sm*m)*(b+sn*n);
+  const exp=document.getElementById('expansion');
+  let html='';
+  terms.forEach((t,i)=>{
+    const isNeg=t.sign<0;
+    const col=isNeg?C.red:t.col;
+    if(i>0) html+=`<span class="exp-op">${t.sign>0?'+':'−'}</span>`;
+    html+=`<span class="exp-piece" style="color:${col};background:${col}18;border-color:${col}88">${t.key}=${t.val}</span>`;
+  });
+  html+=`<span class="exp-eq">=</span><span class="exp-total">${total}</span>`;
+  exp.innerHTML=html;
+}
+
+function updateInsight(){
+  const {sm,sn}=state;
+  const smn=sm*sn;
+  const insights={
+    '1,1': 'Both sides grow: all four pieces are <strong>added</strong>. The mn corner fills in the extra corner — it\'s naturally included.',
+    '1,-1': 'Right side is cut: an is removed. But mb adds a strip at the bottom — part of that strip (mn) was already in the "an" cut zone, so mn is <strong>subtracted</strong>.',
+    '-1,1': 'Bottom is cut: mb is removed. But an adds a strip on the right — where it overlaps the cut, mn is <strong>subtracted</strong>.',
+    '-1,-1': 'Both sides are cut: an and mb are both removed. But they both removed mn — it was subtracted twice, so we must <strong>add mn back</strong> once. This is inclusion-exclusion!',
+  };
+  document.getElementById('insight-card').innerHTML=`<strong>The corner piece mn:</strong> ${insights[`${sm},${sn}`]}`;
+}
+
+function updateAll(){
+  const {a,b,m,n,sm,sn}=state;
+  document.getElementById('av').textContent=a;
+  document.getElementById('bv').textContent=b;
+  document.getElementById('mv').textContent=m;
+  document.getElementById('nv').textContent=n;
+  document.getElementById('m-lbl').textContent=sm===+1?'+m':'−m';
+  document.getElementById('n-lbl').textContent=sn===+1?'+n':'−n';
+  const A2=a+sm*m, B2=b+sn*n;
+  document.getElementById('pb-dims').textContent=`(a${sm>0?'+':'-'}m)(b${sn>0?'+':'-'}n)`;
+  document.getElementById('pb-product').textContent=A2*B2;
+  document.getElementById('pb-eq').textContent=`= ${A2} × ${B2}`;
+  draw();
+  updateExpansion();
+  updateInsight();
+  buildIdTable();
+}
+
+// EVENTS
+['a','b','m','n'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',e=>{
+    state[id]=+e.target.value; updateAll();
+  });
+});
+document.querySelectorAll('[data-sign]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const sign=btn.dataset.sign;
+    const val=+btn.dataset.val;
+    state[sign]=val;
+    updateSignBtns();updateAll();
   });
 });
 
-document.querySelectorAll('.mode-toggle button').forEach(b => {
-  b.addEventListener('click', () => {
-    document.querySelectorAll('.mode-toggle button').forEach(x => x.classList.remove('active'));
-    b.classList.add('active');
-    state.mode = b.dataset.mode;
-    render();
-  });
+cvs.addEventListener('click',e=>{
+  const r=cvs.getBoundingClientRect();
+  const mx=(e.clientX-r.left), my=(e.clientY-r.top);
+  // Try to hit a piece — simplified hit test based on draw positions
+  const {a,b,m,n,sm,sn}=state;
+  const maxU=Math.min(Math.floor((cvs.clientWidth-120)/(b+n)),Math.floor((cvs.clientHeight-100)/(a+m)),46);
+  const unit=Math.max(maxU,12);
+  const hitPad = Math.min(50, Math.floor(cvs.clientHeight*0.10));
+  const ox=Math.max(hitPad,(cvs.clientWidth-(b+n)*unit)/2);
+  const oy=Math.max(hitPad,(cvs.clientHeight-(a+m)*unit)/2);
+  const abW=b*unit,abH=a*unit,anW=n*unit,mbH=m*unit;
+  // Simple hit test per piece
+  function inRect(x,y,w,h){ return mx>=x&&mx<=x+w&&my>=y&&my<=y+h; }
+  let hit=null;
+  if(inRect(ox+(sn>0?abW:abW-anW),oy,anW,abH)) hit='an';
+  else if(inRect(ox,oy+(sm>0?abH:abH-mbH),abW,mbH)) hit='mb';
+  else if(sm>0&&sn>0&&inRect(ox+abW,oy+abH,anW,mbH)) hit='mn';
+  else if(sm>0&&sn<0&&inRect(ox+abW-anW,oy+abH,anW,mbH)) hit='mn';
+  else if(sm<0&&sn>0&&inRect(ox+abW,oy+abH-mbH,anW,mbH)) hit='mn';
+  else if(sm<0&&sn<0&&inRect(ox+abW-anW,oy+abH-mbH,anW,mbH)) hit='mn';
+  else if(inRect(ox,oy,abW,abH)) hit='ab';
+  if(hit){ state.sel=state.sel===hit?null:hit; draw(); updateToggles(); }
 });
 
-function signs(){
-  // returns [sm, sn] in {+1,-1}
-  return [state.mode[0] === '+' ? 1 : -1, state.mode[1] === '+' ? 1 : -1];
-}
-
-function renderSVG(){
-  const { a, b, m, n } = state;
-  const [sm, sn] = signs();
-  const mEff = sm * m;
-  const nEff = sn * n;
-
-  // We always draw the original a×b block. Additional ±m, ±n strips
-  // are drawn relative to it (extending out or cutting in).
-  const unit = 22;
-  const pad = 50;
-  // Compute extent so SVG is sized correctly. We need room on right for ±m and top for ±n.
-  // Convention: a is horizontal width, b is vertical height. Place origin at top-left of ab block.
-  // If m is + → extend right by m units; if m is − → cut from right by m units (ab block stays).
-  // Similarly n on top: + extends up, − cuts from top.
-
-  // The base "a×b" stays at fixed position. m extends/cuts right edge. n extends/cuts top edge.
-  // Bounding box accounts for both possibilities — we want the SVG large enough.
-  const maxRight = a + Math.max(m, 0);   // for positive m only adds space (extends right)
-  const maxTop = b + Math.max(n, 0);     // positive n extends up
-  // For negative m or n the rect doesn't shrink the bbox (we keep dashed outlines).
-  const svgW = maxRight * unit + 2*pad;
-  const svgH = maxTop * unit + 2*pad + 20;
-
-  // Coordinates (origin top-left of ab block; b is the vertical, so ab block occupies y ∈ [originY .. originY+b*unit])
-  const originX = pad;
-  // For visual layout, place ab at the bottom-left of working area; extensions go up & right.
-  const originY = pad + Math.max(n, 0) * unit;
-
-  let svg = '';
-
-  // 1. AB block (always positive)
-  const abX = originX, abY = originY;
-  const abW = a * unit, abH = b * unit;
-  svg += `<rect x="${abX}" y="${abY}" width="${abW}" height="${abH}" class="piece-ab"/>`;
-  svg += `<text x="${abX + abW/2}" y="${abY + abH/2 + 6}" text-anchor="middle" font-family="DM Mono,monospace" font-size="16" font-weight="700" fill="#2c5f9e">ab</text>`;
-  svg += `<text x="${abX + abW/2}" y="${abY + abH/2 + 24}" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="#5a5650">${a}·${b}=${a*b}</text>`;
-
-  // 2. The "an" strip (right side, height = b, width = m, color = orange)
-  // When m > 0 (positive m): extends to right of ab block.
-  // When m < 0 (negative m): cutout from right of ab block (dashed).
-  if(sm === +1){
-    const x = abX + abW, w = m * unit;
-    svg += `<rect x="${x}" y="${abY}" width="${w}" height="${abH}" class="piece-mb"/>`;
-    svg += `<text x="${x + w/2}" y="${abY + abH/2 + 6}" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" font-weight="700" fill="#1a7a4a">mb</text>`;
-    svg += `<text x="${x + w/2}" y="${abY + abH/2 + 22}" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#5a5650">${m}·${b}=${m*b}</text>`;
-  } else {
-    // cutout from the right edge of ab
-    const w = m * unit;
-    const x = abX + abW - w;
-    svg += `<rect x="${x}" y="${abY}" width="${w}" height="${abH}" class="piece-neg"/>`;
-    svg += `<text x="${x + w/2}" y="${abY + abH/2 + 6}" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" font-weight="700" fill="#c0392b">−mb</text>`;
-    svg += `<text x="${x + w/2}" y="${abY + abH/2 + 22}" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#c0392b">−${m*b}</text>`;
-  }
-
-  // 3. The "mb" → wait I mixed up labels. Let me re-derive:
-  // The textbook diagram: a is rows (vertical), b is columns (horizontal).
-  // Increases: m more rows, n more columns. So
-  //   - ab block: a rows × b cols (top-left)
-  //   - an block: a rows × n cols (top-right, beside ab)  → height a, width n
-  //   - mb block: m rows × b cols (bottom-left, below ab) → height m, width b
-  //   - mn block: m rows × n cols (bottom-right)
-  // But my variables: I have a horizontal=a, vertical=b. Need to align with book.
-  // Let's restart this: horizontal = b (cols), vertical = a (rows). So
-  //   ab block: width b * unit, height a * unit
-  //   an block (height a, width n): to the right of ab
-  //   mb block (height m, width b): below ab
-  //   mn block: bottom-right
-  // I'll rewrite the SVG with correct orientation.
-  return null; // signal to use the rewrite below
-}
-
-function renderSVG2(){
-  const { a, b, m, n } = state;
-  const [sm, sn] = signs();
-
-  // Layout: width = b cols, height = a rows. Extensions: n adds columns on the right; m adds rows on the bottom.
-  const unit = 24;
-  const pad = 50;
-
-  // For positive sign, extension grows the bbox; for negative, it carves out of ab.
-  const extraCols = sn === +1 ? n : 0;
-  const extraRows = sm === +1 ? m : 0;
-  const totalCols = b + extraCols;
-  const totalRows = a + extraRows;
-  const svgW = totalCols * unit + 2*pad;
-  const svgH = totalRows * unit + 2*pad + 20;
-
-  // ab block at top-left
-  const abX = pad, abY = pad;
-  const abW = b * unit, abH = a * unit;
-
-  let svg = '';
-
-  // The "ab" piece
-  svg += `<rect x="${abX}" y="${abY}" width="${abW}" height="${abH}" class="piece-ab"/>`;
-  svg += `<text x="${abX + abW/2}" y="${abY + abH/2 + 2}" text-anchor="middle" font-family="DM Mono,monospace" font-size="18" font-weight="700" fill="#2c5f9e">ab</text>`;
-  svg += `<text x="${abX + abW/2}" y="${abY + abH/2 + 20}" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="#5a5650">${a*b}</text>`;
-
-  // "an" piece (width n, height a). If sn=+1 → right of ab; if sn=-1 → carved from right of ab.
-  const anH = abH;
-  const anW = n * unit;
-  if(sn === +1){
-    const x = abX + abW, y = abY;
-    svg += `<rect x="${x}" y="${y}" width="${anW}" height="${anH}" class="piece-an"/>`;
-    svg += `<text x="${x + anW/2}" y="${y + anH/2 + 2}" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" font-weight="700" fill="#e08020">an</text>`;
-    svg += `<text x="${x + anW/2}" y="${y + anH/2 + 18}" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#5a5650">+${a*n}</text>`;
-  } else {
-    const x = abX + abW - anW, y = abY;
-    svg += `<rect x="${x}" y="${y}" width="${anW}" height="${anH}" class="piece-neg"/>`;
-    svg += `<text x="${x + anW/2}" y="${y + anH/2 + 2}" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" font-weight="700" fill="#c0392b">−an</text>`;
-    svg += `<text x="${x + anW/2}" y="${y + anH/2 + 18}" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#c0392b">−${a*n}</text>`;
-  }
-
-  // "mb" piece (height m, width b). If sm=+1 → below ab; if sm=-1 → carved from bottom of ab.
-  const mbH = m * unit;
-  const mbW = abW;
-  if(sm === +1){
-    const x = abX, y = abY + abH;
-    svg += `<rect x="${x}" y="${y}" width="${mbW}" height="${mbH}" class="piece-mb"/>`;
-    svg += `<text x="${x + mbW/2}" y="${y + mbH/2 + 2}" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" font-weight="700" fill="#1a7a4a">mb</text>`;
-    svg += `<text x="${x + mbW/2}" y="${y + mbH/2 + 18}" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#5a5650">+${m*b}</text>`;
-  } else {
-    const x = abX, y = abY + abH - mbH;
-    svg += `<rect x="${x}" y="${y}" width="${mbW}" height="${mbH}" class="piece-neg"/>`;
-    svg += `<text x="${x + mbW/2}" y="${y + mbH/2 + 2}" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" font-weight="700" fill="#c0392b">−mb</text>`;
-    svg += `<text x="${x + mbW/2}" y="${y + mbH/2 + 18}" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#c0392b">−${m*b}</text>`;
-  }
-
-  // "mn" piece (height m, width n). Position depends on both signs.
-  const mnH = m * unit, mnW = n * unit;
-  let mnX, mnY, mnClass, mnLabel, mnSign;
-  if(sm === +1 && sn === +1){
-    // bottom-right corner (adds)
-    mnX = abX + abW; mnY = abY + abH;
-    mnClass = 'piece-mn'; mnLabel = 'mn'; mnSign = '+';
-  } else if(sm === +1 && sn === -1){
-    // bottom strip cut on right? Actually (a+m)(b-n) → +ab -an +mb -mn. So mn is negative.
-    // It sits at the bottom-right where the cut from "an" overlaps with the "mb" strip.
-    // The "mb" strip extends below ab; we need to cut its right n columns.
-    mnX = abX + abW - mnW; mnY = abY + abH;
-    mnClass = 'piece-neg'; mnLabel = '−mn'; mnSign = '−';
-  } else if(sm === -1 && sn === +1){
-    // (a-m)(b+n) → ab +an -mb -mn. The "an" piece extends right; we cut its bottom m rows.
-    mnX = abX + abW; mnY = abY + abH - mnH;
-    mnClass = 'piece-neg'; mnLabel = '−mn'; mnSign = '−';
-  } else {
-    // (a-m)(b-n) → ab -an -mb +mn. The double-cut "double-subtracted" the corner, so we add it back.
-    // It sits at the bottom-right of ab block (overlapping where both cuts intersected).
-    mnX = abX + abW - mnW; mnY = abY + abH - mnH;
-    mnClass = 'piece-mn'; mnLabel = '+mn'; mnSign = '+';
-  }
-  svg += `<rect x="${mnX}" y="${mnY}" width="${mnW}" height="${mnH}" class="${mnClass}"/>`;
-  const mnTextColor = mnClass === 'piece-neg' ? '#c0392b' : '#7a5cb0';
-  svg += `<text x="${mnX + mnW/2}" y="${mnY + mnH/2 + 2}" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="700" fill="${mnTextColor}">${mnLabel}</text>`;
-  svg += `<text x="${mnX + mnW/2}" y="${mnY + mnH/2 + 18}" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="${mnTextColor}">${mnSign}${m*n}</text>`;
-
-  // Outer dimension labels
-  // Top edge: total width = b (+ or - n)
-  const topY = pad - 16;
-  const topLabel = sn === +1 ? `b + n = ${b}+${n} = ${b+n}` : `b − n = ${b}−${n} = ${b-n}`;
-  svg += `<text x="${pad + (b + extraCols)*unit/2}" y="${topY}" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="700" fill="#1a1814">${topLabel}</text>`;
-  // Left edge: total height = a (+ or - m)
-  const leftX = pad - 16;
-  const leftCenterY = pad + (a + extraRows)*unit/2;
-  const leftLabel = sm === +1 ? `a + m = ${a}+${m} = ${a+m}` : `a − m = ${a}−${m} = ${a-m}`;
-  svg += `<text x="${leftX}" y="${leftCenterY}" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="700" fill="#1a1814" transform="rotate(-90 ${leftX} ${leftCenterY})">${leftLabel}</text>`;
-
-  return `<svg viewBox="0 0 ${svgW} ${svgH}" width="${Math.min(svgW, 820)}">${svg}</svg>`;
-}
-
-function render(){
-  // Update slider value displays
-  document.getElementById('a-val').textContent = state.a;
-  document.getElementById('b-val').textContent = state.b;
-  document.getElementById('m-val').textContent = state.m;
-  document.getElementById('n-val').textContent = state.n;
-
-  const [sm, sn] = signs();
-  document.getElementById('m-lbl').textContent = sm === +1 ? 'm' : 'm  (subtracted)';
-  document.getElementById('n-lbl').textContent = sn === +1 ? 'n' : 'n  (subtracted)';
-
-  // Render SVG
-  document.getElementById('stage').innerHTML = renderSVG2();
-
-  // Build expansion display
-  const { a, b, m, n } = state;
-  const mn_sign = sm * sn; // sign of mn term
-  const exp = document.getElementById('expansion');
-  const ms = sm === +1 ? '+' : '−';
-  const ns = sn === +1 ? '+' : '−';
-  const mn_s = mn_sign === +1 ? '+' : '−';
-  exp.innerHTML = `
-    <span>(a ${ms} m)(b ${ns} n)</span>
-    <span class="eq">=</span>
-    <span class="term-chip term-ab">ab</span>
-    <span class="op">${ns}</span>
-    <span class="term-chip term-an">an</span>
-    <span class="op">${ms}</span>
-    <span class="term-chip term-mb">mb</span>
-    <span class="op">${mn_s}</span>
-    <span class="term-chip ${mn_sign === +1 ? 'term-mn' : 'term-neg'}">mn</span>
-  `;
-
-  // Numeric totals
-  const newA = a + sm*m, newB = b + sn*n;
-  const orig = a * b;
-  const ne = newA * newB;
-  const diff = ne - orig;
-  document.getElementById('orig-val').textContent = orig;
-  document.getElementById('orig-sub').textContent = `${a} × ${b}`;
-  document.getElementById('new-val').textContent = ne;
-  document.getElementById('new-sub').textContent = `${newA} × ${newB}`;
-  document.getElementById('diff-val').textContent = (diff >= 0 ? '+' : '') + diff;
-  document.getElementById('diff-val').style.color = diff >= 0 ? 'var(--green)' : 'var(--red)';
-
-  // Build change formula
-  const anTerm = sn*a*n;
-  const mbTerm = sm*m*b;
-  const mnTerm = mn_sign*m*n;
-  const parts = [];
-  parts.push(`${anTerm >= 0 ? '+' : ''}${anTerm}`);
-  parts.push(`${mbTerm >= 0 ? '+' : ''}${mbTerm}`);
-  parts.push(`${mnTerm >= 0 ? '+' : ''}${mnTerm}`);
-  document.getElementById('diff-sub').textContent = parts.join(' ');
-
-  // Insight
-  const ins = document.getElementById('insight');
-  if(state.mode === '++'){
-    ins.innerHTML = `Adding to both sides: the rectangle grows by an <strong>L-shape</strong> of three new pieces — <strong>an</strong> on the right, <strong>mb</strong> at the bottom, and <strong>mn</strong> filling the corner. That's why the change is <strong>an + mb + mn</strong>, not just an + mb.`;
-  } else if(state.mode === '+-'){
-    ins.innerHTML = `Adding m rows but cutting n columns: the new piece <strong>mb</strong> is added at the bottom, but a chunk <strong>an</strong> is removed from the right. Where they overlap, the corner <strong>mn</strong> would be double-cut — so it ends up subtracted once overall.`;
-  } else if(state.mode === '-+'){
-    ins.innerHTML = `Cutting m rows but adding n columns: <strong>an</strong> is added on the right, <strong>mb</strong> is cut from the bottom. The corner <strong>mn</strong> overlaps both moves and ends up subtracted once.`;
-  } else {
-    ins.innerHTML = `Cutting both ways: <strong>mb</strong> and <strong>an</strong> are both removed, but they overlap at the corner. That corner <strong>mn</strong> was removed twice — so we must add it back once. This is exactly the inclusion-exclusion idea.`;
-  }
-}
-
-render();
+updateAll();
+resize();
 </script>
 </body>
 </html>
