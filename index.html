@@ -1,530 +1,466 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Area Decomposition — Ch 6.1</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Area Decomposition — Ganita Prakash Grade 8</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700;9..40,800&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#06080f;--surface:#0e1420;--surface2:#151c2e;
-  --border:#1e2d4a;--border2:#253558;
-  --gold:#f5b942;--gold-dim:rgba(245,185,66,.14);--gold-glow:rgba(245,185,66,.35);
-  --orange:#f97316;--orange-dim:rgba(249,115,22,.13);
-  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,.12);
-  --red:#f87171;--red-dim:rgba(248,113,113,.12);
-  --blue:#60a5fa;--blue-dim:rgba(96,165,250,.12);
-  --green:#34d399;--green-dim:rgba(52,211,153,.12);
-  --violet:#a78bfa;--violet-dim:rgba(167,139,250,.12);
-  --text:#e2e8f0;--text2:#94a3b8;--text3:#475569;
-  --sans:'Syne',system-ui,sans-serif;--mono:'DM Mono',ui-monospace,monospace;
+  --bg:#fdf8f0;--card:#fff;--canvas:#f2efe8;--ink:#1a1a1a;--ink2:#444;--ink3:#888;--bc:#e0dcd4;
+  --teal:#1a9e8f;--coral:#e8604c;--gold:#d4920a;--violet:#7c5cbf;--sky:#3d8fd6;
+  --teal-bg:rgba(26,158,143,.12);--coral-bg:rgba(232,96,76,.12);
+  --gold-bg:rgba(212,146,10,.12);--violet-bg:rgba(124,92,191,.12);--sky-bg:rgba(61,143,214,.12);
+  /* piece colours */
+  --cab:#3d8fd6;--can:#d4920a;--cmb:#1a9e8f;--cmn:#7c5cbf;--cneg:#e8604c;
+  --sans:'DM Sans',system-ui,sans-serif;--mono:'DM Mono',monospace;
+  --brd:3px solid var(--ink);--r:14px;
 }
-html,body{width:100%;min-height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased}
-body{display:flex;flex-direction:column}
+html,body{width:100%;height:100%;overflow:hidden}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;position:fixed;inset:0}
 
-/* TOP */
-.top{flex-shrink:0;border-bottom:1px solid var(--border);background:var(--surface);padding:12px 22px;display:flex;align-items:center;gap:16px}
-.top-badge{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--teal);background:var(--teal-dim);border:1px solid var(--teal);border-radius:4px;padding:3px 8px;letter-spacing:.08em;flex-shrink:0}
-.top-title{font-size:20px;font-weight:800;color:var(--text);letter-spacing:-.02em;flex:1}
-.top-formula{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text2);letter-spacing:.02em}
+/* ── HEADER ── */
+.top{display:flex;align-items:center;gap:0;flex-shrink:0;background:var(--ink);position:relative;overflow:hidden}
+.top::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle,rgba(255,255,255,.18) 1px,transparent 1px);background-size:6px 6px;opacity:.5}
+.top-left{padding:11px 18px;border-right:2px solid rgba(255,255,255,.15);position:relative;z-index:1;flex-shrink:0}
+.top-ch{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.5)}
+.top-title{font-size:20px;font-weight:800;color:#fff;letter-spacing:-.01em}
+.top-formula{font-family:var(--mono);font-size:13px;color:rgba(255,255,255,.55);position:relative;z-index:1;padding:0 18px}
 
-/* MAIN */
-.main{flex:1;display:grid;grid-template-columns:200px 1fr 280px;min-height:calc(100vh - 53px)}
+/* ── LAYOUT: left sidebar | canvas | right sidebar ── */
+.main{flex:1;display:grid;grid-template-columns:230px 1fr 230px;overflow:hidden;min-height:0}
 
-/* LEFT */
-.left{border-right:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;padding:18px 14px;gap:16px;overflow-y:auto}
-.panel-lbl{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+/* ── LEFT ── */
+.left{border-right:var(--brd);display:flex;flex-direction:column;background:var(--bg);overflow:hidden}
+.lp{padding:12px 14px;border-bottom:2px solid var(--bc);flex-shrink:0}
+.lp-lbl{font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.sl-group{display:flex;flex-direction:column;gap:7px}
+.sl-item{display:flex;flex-direction:column;gap:3px}
+.sl-hd{display:flex;justify-content:space-between;align-items:baseline}
+.sl-name{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--ink2)}
+.sl-val{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--teal)}
+input[type=range]{width:100%;height:4px;-webkit-appearance:none;background:var(--bc);border-radius:2px;outline:none;cursor:pointer;accent-color:var(--teal)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:5px;background:var(--teal);cursor:pointer;border:2px solid var(--ink)}
 
-.sl-group{display:flex;flex-direction:column;gap:10px}
-.sl-item{display:flex;flex-direction:column;gap:4px}
-.sl-header{display:flex;justify-content:space-between;align-items:baseline}
-.sl-name{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text)}
-.sl-val{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--teal);min-width:32px;text-align:right;transition:color .2s}
-input[type=range]{width:100%;accent-color:var(--teal);height:4px;cursor:pointer}
+.sign-section{padding:10px 14px;border-bottom:2px solid var(--bc);flex-shrink:0}
+.sign-lbl{font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.sign-row{display:flex;gap:5px;margin-bottom:8px}
+.sign-row:last-child{margin-bottom:0}
+.sign-btn{flex:1;padding:7px;border:2px solid var(--bc);border-radius:10px;background:var(--card);font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ink3);cursor:pointer;transition:all .12s;min-height:38px}
+.sign-btn:hover{border-color:var(--ink2)}
+.sign-btn.active-pos{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}
+.sign-btn.active-neg{background:var(--coral-bg);border-color:var(--coral);color:var(--coral)}
 
-/* Sign pickers */
-.sign-row{display:flex;gap:6px}
-.sign-btn{flex:1;padding:8px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;
-  cursor:pointer;font-family:var(--mono);font-size:16px;font-weight:700;color:var(--text2);
-  text-align:center;transition:all .14s}
-.sign-btn:hover{border-color:var(--border2);color:var(--text)}
-.sign-btn.active-pos{background:var(--green-dim);border-color:var(--green);color:var(--green)}
-.sign-btn.active-neg{background:var(--red-dim);border-color:var(--red);color:var(--red)}
+/* piece list */
+.pieces-section{padding:10px 14px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:5px}
+.piece-row{display:flex;align-items:center;gap:8px;padding:9px 11px;border:2px solid var(--bc);border-radius:11px;cursor:pointer;transition:all .15s;background:var(--card)}
+.piece-row:hover{background:var(--canvas)}
+.piece-row.sel{border-width:3px}
+.pr-dot{width:16px;height:16px;border-radius:5px;flex-shrink:0;border:2px solid}
+.pr-name{font-family:var(--mono);font-size:14px;font-weight:700;flex:1}
+.pr-val{font-family:var(--mono);font-size:15px;font-weight:700;text-align:right}
 
-/* Piece toggles */
-.piece-toggles{display:flex;flex-direction:column;gap:5px}
-.piece-toggle{padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;
-  cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .14s;font-family:var(--mono)}
-.pt-swatch{width:12px;height:12px;border-radius:3px;flex-shrink:0}
-.pt-name{font-size:12px;font-weight:700;color:var(--text);flex:1}
-.pt-val{font-size:12px;color:var(--text2)}
-.piece-toggle.sel{box-shadow:0 0 0 1.5px currentColor}
+/* product badge */
+.product-badge{padding:12px 14px;border-top:2px solid var(--bc);background:var(--canvas);flex-shrink:0}
+.pbd-dims{font-family:var(--mono);font-size:12px;color:var(--ink3);margin-bottom:2px}
+.pbd-num{font-family:var(--mono);font-size:38px;font-weight:700;color:var(--teal);line-height:1}
+.pbd-eq{font-family:var(--mono);font-size:13px;color:var(--ink3)}
 
-/* Product display */
-.product-box{padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;text-align:center;display:flex;flex-direction:column;gap:5px}
-.pb-dims{font-family:var(--mono);font-size:14px;color:var(--text2)}
-.pb-product{font-family:var(--mono);font-size:34px;font-weight:700;color:var(--teal);transition:all .25s;text-shadow:0 0 18px rgba(45,212,191,.4)}
-.pb-eq{font-family:var(--mono);font-size:13px;color:var(--text2)}
+/* ── CENTER CANVAS ── */
+.center{display:flex;flex-direction:column;overflow:hidden;background:var(--canvas);position:relative}
+#cvs{display:block;position:absolute;top:0;left:0;width:100%;height:100%}
+.canvas-inner{flex:1;position:relative;overflow:hidden;min-height:0}
+.expansion-bar{padding:10px 16px;border-top:var(--brd);background:var(--card);display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-shrink:0;min-height:52px}
+.exp-piece{padding:5px 12px;border-radius:9px;border:2px solid;font-family:var(--mono);font-size:14px;font-weight:700;cursor:pointer;transition:all .14s}
+.exp-op{color:var(--ink3);font-size:16px;font-family:var(--mono)}
+.exp-eq{color:var(--ink3);font-size:18px;font-family:var(--mono)}
+.exp-total{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--teal)}
 
-/* CENTER */
-.center{background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;position:relative;overflow:hidden}
-#cvs{display:block}
+/* ── RIGHT ── */
+.right{border-left:var(--brd);display:flex;flex-direction:column;background:var(--bg);overflow:hidden}
+.rs{padding:12px 14px;border-bottom:2px solid var(--bc);flex-shrink:0}
+.rs-lbl{font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.id-table{display:flex;flex-direction:column;gap:5px}
+.id-row{display:flex;align-items:center;gap:6px;padding:8px 10px;border:2px solid var(--bc);border-radius:10px;font-size:12px;cursor:pointer;transition:all .14s;background:var(--card)}
+.id-row:hover{background:var(--canvas)}
+.id-row.cur{border-color:var(--teal);background:var(--teal-bg);border-width:3px}
+.ir-sign{font-family:var(--mono);font-size:16px;font-weight:700;min-width:28px;color:var(--ink3)}
+.id-row.cur .ir-sign{color:var(--teal)}
+.ir-formula{font-family:var(--mono);font-size:12px;flex:1;color:var(--ink2)}
+.ir-result{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--teal)}
 
-/* EXPANSION at bottom of center */
-.expansion{margin-top:16px;padding:12px 18px;background:var(--surface);border:1px solid var(--border);border-radius:8px;
-  display:flex;align-items:center;flex-wrap:wrap;gap:6px;font-family:var(--mono);font-size:15px;font-weight:700;
-  width:100%;max-width:640px;justify-content:center}
-.exp-piece{display:inline-flex;align-items:center;gap:3px;padding:5px 10px;border-radius:6px;border:1.5px solid;font-weight:700;transition:all .25s}
-.exp-op{color:var(--text3);padding:0 3px;font-size:18px}
-.exp-eq{color:var(--text3);font-size:16px;padding:0 6px}
-.exp-total{font-size:20px;font-weight:800;color:var(--teal);padding:4px 14px;background:var(--teal-dim);border:1.5px solid var(--teal);border-radius:6px}
+/* legend */
+.legend-section{padding:12px 14px;border-bottom:2px solid var(--bc);flex-shrink:0}
+.leg-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.leg-row:last-child{margin-bottom:0}
+.leg-swatch{width:28px;height:20px;border-radius:5px;border:2px solid;flex-shrink:0}
+.leg-name{font-family:var(--mono);font-size:13px;font-weight:700}
+.leg-desc{font-size:12px;color:var(--ink3);margin-left:auto;text-align:right}
 
-/* RIGHT */
-.right{border-left:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;padding:18px 14px;gap:14px;overflow-y:auto}
+/* insight */
+.insight-section{flex:1;padding:12px 14px;overflow-y:auto;font-size:13px;color:var(--ink2);line-height:1.7}
+.insight-section strong{color:var(--ink);font-weight:700}
 
-.identity-table{display:flex;flex-direction:column;gap:4px}
-.id-row{display:flex;align-items:center;gap:6px;padding:8px 10px;background:var(--surface2);border-radius:6px;font-family:var(--mono);font-size:12px;cursor:pointer;transition:all .14s;border:1px solid transparent}
-.id-row:hover{border-color:var(--border2)}
-.id-row.current{border-color:var(--teal);background:var(--teal-dim)}
-.id-row .ir-mode{font-size:10px;font-weight:700;color:var(--text3);min-width:30px;letter-spacing:.06em}
-.id-row .ir-formula{flex:1;color:var(--text2)}
-.id-row .ir-result{font-weight:700;color:var(--teal)}
-
-.insight-card{padding:13px;background:var(--gold-dim);border:1px solid var(--gold);border-radius:7px;border-left:3px solid var(--gold);font-size:12px;color:var(--text2);line-height:1.7}
-.insight-card strong{color:var(--gold)}
-
-.four-parts{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.fp-cell{padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;text-align:center}
-.fp-label{font-family:var(--mono);font-size:13px;font-weight:700;margin-bottom:3px}
-.fp-desc{font-size:11px;color:var(--text3)}
-
-/* Mobile */
+/* mobile */
 @media(max-width:900px){
-  html,body{overflow:auto;height:auto}
-  body{position:static;display:flex;flex-direction:column;min-height:100dvh}
-  .main{grid-template-columns:1fr;grid-template-rows:auto 280px auto auto auto;overflow:visible}
-  .left{border-right:none;border-bottom:1px solid var(--border);max-height:none}
-  .right{border-left:none;border-bottom:1px solid var(--border);max-height:none}
-  .center{height:280px;overflow:hidden;display:block}
-  #cvs{width:100%;height:240px}
-  .expansion{max-width:100%;border-radius:0;border-left:none;border-right:none}
-  .top-formula{display:none}
-  .four-parts{grid-template-columns:1fr 1fr}
-}
-@media(max-width:480px){
-  .left{padding:12px 10px}
-  .sl-val{font-size:17px}
-  .sl-name{font-size:13px}
-  .sign-btn{font-size:14px;padding:7px 5px}
+  html,body{overflow:auto;height:auto}body{position:static;min-height:100dvh}
+  .main{grid-template-columns:1fr;overflow:visible}
+  .left,.right{border-right:none;border-left:none;border-bottom:var(--brd);overflow:visible}
+  .center{min-height:300px}
+  .canvas-inner{min-height:260px}
+  #cvs{position:relative;width:100%;height:260px}
 }
 </style>
 </head>
 <body>
 
 <div class="top">
-  <div class="top-badge">CH 6.1</div>
-  <div class="top-title">Area Decomposition</div>
-  <div class="top-formula">(a±m)(b±n) = ab ± an ± mb + mn</div>
+  <div class="top-left">
+    <div class="top-ch">Ch 6 · Algebraic Expressions</div>
+    <div class="top-title">Area Decomposition</div>
+  </div>
+  <div class="top-formula">&nbsp;&nbsp;(a ± m)(b ± n) = ab ± an ± mb + mn</div>
 </div>
 
 <div class="main">
 
   <!-- LEFT -->
   <div class="left">
-    <div>
-      <div class="panel-lbl">Rectangle sides</div>
+    <div class="lp">
+      <div class="lp-lbl">Rectangle sides</div>
       <div class="sl-group">
         <div class="sl-item">
-          <div class="sl-header"><span class="sl-name">a</span><span class="sl-val" id="av">6</span></div>
+          <div class="sl-hd"><span class="sl-name">a</span><span class="sl-val" id="av">6</span></div>
           <input type="range" id="a" min="2" max="10" value="6">
         </div>
         <div class="sl-item">
-          <div class="sl-header"><span class="sl-name">b</span><span class="sl-val" id="bv">5</span></div>
+          <div class="sl-hd"><span class="sl-name">b</span><span class="sl-val" id="bv">5</span></div>
           <input type="range" id="b" min="2" max="10" value="5">
         </div>
         <div class="sl-item">
-          <div class="sl-header"><span class="sl-name" id="m-lbl">+m</span><span class="sl-val" id="mv">3</span></div>
+          <div class="sl-hd"><span class="sl-name" id="m-lbl">+m</span><span class="sl-val" id="mv">3</span></div>
           <input type="range" id="m" min="1" max="6" value="3">
         </div>
         <div class="sl-item">
-          <div class="sl-header"><span class="sl-name" id="n-lbl">+n</span><span class="sl-val" id="nv">2</span></div>
+          <div class="sl-hd"><span class="sl-name" id="n-lbl">+n</span><span class="sl-val" id="nv">2</span></div>
           <input type="range" id="n" min="1" max="6" value="2">
         </div>
       </div>
     </div>
 
-    <div>
-      <div class="panel-lbl">Signs</div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <div>
-          <div style="font-size:11px;color:var(--text3);margin-bottom:4px">m direction</div>
-          <div class="sign-row">
-            <button class="sign-btn active-pos" data-sign="sm" data-val="+1">+m</button>
-            <button class="sign-btn" data-sign="sm" data-val="-1">−m</button>
-          </div>
-        </div>
-        <div>
-          <div style="font-size:11px;color:var(--text3);margin-bottom:4px">n direction</div>
-          <div class="sign-row">
-            <button class="sign-btn active-pos" data-sign="sn" data-val="+1">+n</button>
-            <button class="sign-btn" data-sign="sn" data-val="-1">−n</button>
-          </div>
-        </div>
+    <div class="sign-section">
+      <div class="sign-lbl">m direction</div>
+      <div class="sign-row">
+        <button class="sign-btn active-pos" data-sign="sm" data-val="+1">+m grow ↓</button>
+        <button class="sign-btn" data-sign="sm" data-val="-1">−m shrink ↑</button>
+      </div>
+      <div class="sign-lbl">n direction</div>
+      <div class="sign-row">
+        <button class="sign-btn active-pos" data-sign="sn" data-val="+1">+n grow →</button>
+        <button class="sign-btn" data-sign="sn" data-val="-1">−n shrink ←</button>
       </div>
     </div>
 
-    <div>
-      <div class="panel-lbl">Click a piece</div>
-      <div class="piece-toggles" id="piece-toggles"></div>
-    </div>
+    <div class="pieces-section" id="piece-list"></div>
 
-    <div class="product-box">
-      <div class="pb-dims" id="pb-dims">(6+3)(5+2)</div>
-      <div class="pb-product" id="pb-product">72</div>
-      <div class="pb-eq" id="pb-eq">= 9 × 7</div>
+    <div class="product-badge">
+      <div class="pbd-dims" id="pb-dims">(a+m)(b+n)</div>
+      <div class="pbd-num" id="pb-num">72</div>
+      <div class="pbd-eq" id="pb-eq">= 9 × 7</div>
     </div>
   </div>
 
   <!-- CENTER -->
   <div class="center">
-    <canvas id="cvs"></canvas>
-    <div class="expansion" id="expansion"></div>
+    <div class="canvas-inner" id="canvas-inner">
+      <canvas id="cvs"></canvas>
+    </div>
+    <div class="expansion-bar" id="expansion-bar"></div>
   </div>
 
   <!-- RIGHT -->
   <div class="right">
-    <div>
-      <div class="panel-lbl">All four sign cases</div>
-      <div class="identity-table" id="id-table"></div>
+    <div class="rs">
+      <div class="rs-lbl">All four sign cases</div>
+      <div class="id-table" id="id-table"></div>
     </div>
-
-    <div>
-      <div class="panel-lbl">The four pieces</div>
-      <div class="four-parts">
-        <div class="fp-cell"><div class="fp-label" style="color:var(--blue)">ab</div><div class="fp-desc">Original rectangle</div></div>
-        <div class="fp-cell"><div class="fp-label" style="color:var(--orange)">an</div><div class="fp-desc">a rows × n cols</div></div>
-        <div class="fp-cell"><div class="fp-label" style="color:var(--green)">mb</div><div class="fp-desc">m rows × b cols</div></div>
-        <div class="fp-cell"><div class="fp-label" style="color:var(--violet)">mn</div><div class="fp-desc">m rows × n cols (corner)</div></div>
-      </div>
+    <div class="legend-section">
+      <div class="rs-lbl">Piece colours</div>
+      <div class="leg-row"><div class="leg-swatch" style="background:rgba(61,143,214,.2);border-color:#3d8fd6"></div><div class="leg-name" style="color:#3d8fd6">ab</div><div class="leg-desc">Original rectangle</div></div>
+      <div class="leg-row"><div class="leg-swatch" style="background:rgba(212,146,10,.2);border-color:#d4920a"></div><div class="leg-name" style="color:#d4920a">an</div><div class="leg-desc">a × n side strip</div></div>
+      <div class="leg-row"><div class="leg-swatch" style="background:rgba(26,158,143,.2);border-color:#1a9e8f"></div><div class="leg-name" style="color:#1a9e8f">mb</div><div class="leg-desc">m × b bottom strip</div></div>
+      <div class="leg-row"><div class="leg-swatch" style="background:rgba(124,92,191,.2);border-color:#7c5cbf"></div><div class="leg-name" style="color:#7c5cbf">mn</div><div class="leg-desc">m × n corner</div></div>
     </div>
-
-    <div class="insight-card" id="insight-card">
-      <strong>The corner piece mn:</strong> when both signs are the same (both + or both −), the corner adds. When signs differ, the corner subtracts. The picture explains <em>why</em> — the corner piece is either added by the extension, removed by the cutout, or doubly removed and then added back.
+    <div class="insight-section" id="insight-section">
+      <strong>The corner piece mn:</strong> when both signs are the same (+,+ or −,−), the corner <strong>adds</strong>. When signs differ, the corner <strong>subtracts</strong>. The picture shows exactly why — tap a sign case above to see it change.
     </div>
   </div>
+
 </div>
 
 <script>
-const state = {a:6,b:5,m:3,n:2,sm:+1,sn:+1,sel:null};
-const PR = Math.min(window.devicePixelRatio||1,2);
-const cvs = document.getElementById('cvs');
-const ctx = cvs.getContext('2d');
-const C={
-  blue:'#60a5fa',orange:'#f97316',green:'#34d399',violet:'#a78bfa',
-  red:'#f87171',teal:'#2dd4bf',gold:'#f5b942',
-  text:'#e2e8f0',text2:'#94a3b8',text3:'#475569',
-  bg:'#06080f',surface:'#0e1420',surface2:'#151c2e',border:'#1e2d4a',
-};
-const PIECES = {
-  ab:  {label:'ab',  color:C.blue,   name:'ab (original)'},
-  an:  {label:'an',  color:C.orange, name:'an (side)'},
-  mb:  {label:'mb',  color:C.green,  name:'mb (strip)'},
-  mn:  {label:'mn',  color:C.violet, name:'mn (corner)'},
-};
+const state={a:6,b:5,m:3,n:2,sm:+1,sn:+1,sel:null};
+const PR=Math.min(window.devicePixelRatio||1,2);
+const cvs=document.getElementById('cvs');
+const ctx=cvs.getContext('2d');
 
+/* colours keyed by piece */
+const PC={ab:'#3d8fd6',an:'#d4920a',mb:'#1a9e8f',mn:'#7c5cbf',neg:'#e8604c'};
+
+function pieceColor(key,sign){return sign>0?PC[key]:PC.neg;}
+
+/* ── CANVAS RESIZE ── */
 function resize(){
-  const wrap = cvs.parentElement;
-  const W = wrap.clientWidth;
-  const isMobile = window.innerWidth <= 900;
-  const H = isMobile ? 240 : Math.max(Math.min(wrap.clientHeight - ((document.querySelector('.expansion')||{offsetHeight:0}).offsetHeight||0), 480), 200);
-  cvs.width=W*PR; cvs.height=H*PR;
-  cvs.style.width=W+'px'; cvs.style.height=H+'px';
-  ctx.resetTransform(); ctx.scale(PR,PR);
+  const inner=document.getElementById('canvas-inner');
+  const W=inner.clientWidth,H=inner.clientHeight;
+  if(W<=0||H<=0)return;
+  cvs.width=W*PR;cvs.height=H*PR;
+  cvs.style.width=W+'px';cvs.style.height=H+'px';
+  ctx.resetTransform();ctx.scale(PR,PR);
   draw();
 }
-new ResizeObserver(resize).observe(cvs.parentElement);
+new ResizeObserver(resize).observe(document.getElementById('canvas-inner'));
 
+/* ── DRAW ── */
 function draw(){
-  const W=cvs.clientWidth, H=cvs.clientHeight;
+  const W=cvs.clientWidth,H=cvs.clientHeight;
+  if(!W||!H)return;
   ctx.clearRect(0,0,W,H);
-  ctx.fillStyle=C.bg; ctx.fillRect(0,0,W,H);
+
+  /* cream bg + dot grid */
+  ctx.fillStyle='#f2efe8';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#ccc8be';
+  for(let x=24;x<W;x+=24)for(let y=24;y<H;y+=24){ctx.beginPath();ctx.arc(x,y,1.2,0,Math.PI*2);ctx.fill();}
 
   const {a,b,m,n,sm,sn,sel}=state;
-  const pad = Math.min(50, Math.floor(H*0.10), Math.floor(W*0.08));
+  const smn=sm*sn;
 
-  // Layout: width = b units + n units; height = a units + m units
-  const maxU = Math.min(
-    Math.floor((W-pad*3)/(b+n)),
-    Math.floor((H-pad*2.5)/(a+m)),
-    46
-  );
-  const unit = Math.max(maxU, 12);
-  // Clamp origins so grid fits in canvas
-  const gridTotalW = (b+n)*unit, gridTotalH = (a+m)*unit;
-  const ox = gridTotalW > W-pad ? pad : Math.max(pad, (W-gridTotalW)/2);
-  const oy = gridTotalH > H-pad ? Math.max(pad, (H-gridTotalH)/2) : Math.max(pad, (H-gridTotalH)/2);
-  const abW = b*unit, abH = a*unit;
-  const anW = n*unit, anH = a*unit;    // right of ab
-  const mbW = b*unit, mbH = m*unit;    // below ab
-  const mnW = n*unit, mnH = m*unit;    // corner
+  /* unit size — make grid fill 80% of smallest dimension */
+  const cols=b+n,rows=a+m;
+  const pad=Math.max(36,Math.min(56,W*.08,H*.1));
+  const unit=Math.max(10,Math.min(
+    Math.floor((W-pad*2.5)/cols),
+    Math.floor((H-pad*2)/rows),
+    52
+  ));
 
-  // Signs determine where pieces go
-  // sm=+1: mb extends DOWN below ab; sm=-1: mb is cut FROM ab (bottom portion)
-  // sn=+1: an extends RIGHT of ab;   sn=-1: an is cut FROM ab (right portion)
-  const smn = sm * sn; // sign of mn term
+  const gW=cols*unit,gH=rows*unit;
+  const ox=Math.round((W-gW)/2);
+  const oy=Math.round((H-gH)/2);
 
-  function rr(x,y,w,h,fill,stroke,alpha=1,dash=false){
-    ctx.save();
-    ctx.globalAlpha=alpha;
-    if(dash) ctx.setLineDash([6,4]);
-    ctx.beginPath(); ctx.rect(x,y,w,h);
-    if(fill){ ctx.fillStyle=fill; ctx.fill(); }
-    if(stroke){ ctx.strokeStyle=stroke; ctx.lineWidth=2; ctx.stroke(); }
-    ctx.restore();
-  }
+  const abW=b*unit,abH=a*unit,anW=n*unit,mbH=m*unit;
 
-  function txt(text,x,y,size,color,align='center',baseline='middle',weight='700'){
-    ctx.font=`${weight} ${size}px DM Mono,monospace`;
-    ctx.fillStyle=color; ctx.textAlign=align; ctx.textBaseline=baseline;
-    ctx.fillText(text,x,y);
-  }
+  /* piece positions */
+  const anX=sn===+1?ox+abW:ox+abW-anW,anY=oy;
+  const mbX=ox,mbY=sm===+1?oy+abH:oy+abH-mbH;
+  const mnX=sn===+1?ox+abW:ox+abW-anW;
+  const mnY=sm===+1?oy+abH:oy+abH-mbH;
 
-  function piece(key,x,y,w,h,sign){
-    const p=PIECES[key];
-    const isPos = sign>0;
-    const col = isPos ? p.color : C.red;
-    const selMatch = sel===key;
-    const baseAlpha = selMatch ? 0.4 : 0.18;
-    const glow = selMatch ? 0.9 : 0.7;
-    rr(x,y,w,h, col+(isPos?'30':'20'), col+'bb'+(selMatch?'':'88'), 1, !isPos);
-    if(selMatch){
-      ctx.save();ctx.shadowColor=col;ctx.shadowBlur=18;
-      ctx.strokeStyle=col;ctx.lineWidth=2.5;ctx.beginPath();ctx.rect(x,y,w,h);ctx.stroke();
-      ctx.restore();
+  /* draw a piece */
+  function drawPiece(key,x,y,w,h,sign){
+    const col=pieceColor(key,sign),isPos=sign>0,isSel=sel===key;
+    /* fill */
+    ctx.fillStyle=col+(isPos?'30':'1a');
+    ctx.fillRect(x,y,w,h);
+    /* border — dashed if negative */
+    ctx.strokeStyle=col;ctx.lineWidth=isSel?3.5:2.5;
+    if(!isPos){ctx.setLineDash([7,4]);}else{ctx.setLineDash([]);}
+    ctx.strokeRect(x+1,y+1,w-2,h-2);
+    ctx.setLineDash([]);
+    /* glow on selected */
+    if(isSel){
+      ctx.save();ctx.shadowColor=col;ctx.shadowBlur=14;
+      ctx.strokeStyle=col;ctx.lineWidth=3;
+      ctx.strokeRect(x,y,w,h);ctx.restore();
     }
-    // Label
-    if(w>30 && h>24){
-      const sign_str = isPos ? '' : '−';
-      txt(sign_str+p.label, x+w/2, y+h/2-7, Math.min(14,w/3.5), col);
-      const numVal = Math.abs(getTermValue(key));
-      txt((isPos?'+':'-')+numVal, x+w/2, y+h/2+10, Math.min(11,w/4.5), col+'cc', 'center','middle','400');
+    /* label */
+    if(w>28&&h>22){
+      const fs=Math.min(15,Math.max(10,Math.floor(Math.min(w,h)*.28)));
+      ctx.font=`700 ${fs}px DM Mono,monospace`;
+      ctx.fillStyle=col;ctx.textAlign='center';ctx.textBaseline='middle';
+      const sign_str=isPos?'':'-';
+      ctx.fillText(sign_str+key,x+w/2,y+h/2-(h>40?fs*.6:0));
+      if(h>40){
+        const val=Math.abs(getVal(key));
+        ctx.font=`400 ${Math.max(9,fs-3)}px DM Mono,monospace`;
+        ctx.fillStyle=col+'aa';ctx.fillText((isPos?'+':'-')+val,x+w/2,y+h/2+fs*.8);
+      }
     }
   }
 
-  function getTermValue(key){
-    const {a,b,m,n,sm,sn}=state;
-    const smn=sm*sn;
-    if(key==='ab') return a*b;
-    if(key==='an') return sn*a*n;
-    if(key==='mb') return sm*m*b;
-    if(key==='mn') return smn*m*n;
-    return 0;
+  function getVal(key){
+    const{a,b,m,n,sm,sn}=state,smn=sm*sn;
+    if(key==='ab')return a*b;if(key==='an')return sn*a*n;
+    if(key==='mb')return sm*m*b;if(key==='mn')return smn*m*n;return 0;
   }
 
-  // Positions of the 4 pieces
-  const abX=ox, abY=oy;
-  let anX,anY,mbX,mbY,mnX,mnY;
-  if(sn===+1){ anX=ox+abW; anY=oy; }
-  else        { anX=ox+abW-anW; anY=oy; }
-  if(sm===+1){ mbX=ox; mbY=oy+abH; }
-  else        { mbX=ox; mbY=oy+abH-mbH; }
-  if(sm===+1 && sn===+1){ mnX=ox+abW; mnY=oy+abH; }
-  else if(sm===+1 && sn===-1){ mnX=ox+abW-mnW; mnY=oy+abH; }
-  else if(sm===-1 && sn===+1){ mnX=ox+abW; mnY=oy+abH-mnH; }
-  else { mnX=ox+abW-mnW; mnY=oy+abH-mnH; }
+  drawPiece('ab',ox,oy,abW,abH,+1);
+  drawPiece('an',anX,anY,anW,abH,sn);
+  drawPiece('mb',mbX,mbY,abW,mbH,sm);
+  drawPiece('mn',mnX,mnY,anW,mbH,smn);
 
-  // Draw pieces (back to front)
-  piece('ab',abX,abY,abW,abH,+1);
-  piece('an',anX,anY,anW,anH,sn);
-  piece('mb',mbX,mbY,mbW,mbH,sm);
-  piece('mn',mnX,mnY,mnW,mnH,smn);
+  /* outer bounding box */
+  ctx.save();ctx.setLineDash([6,4]);ctx.strokeStyle='#1a9e8f55';ctx.lineWidth=1.5;
+  ctx.strokeRect(ox,oy,gW,gH);ctx.restore();
 
-  // Outer bounding box
-  const boxX = sn===+1?ox:ox; // same for both
-  const boxY = sm===+1?oy:oy;
-  const boxW = sn===+1?(b+n)*unit:b*unit;
-  const boxH = sm===+1?(a+m)*unit:a*unit;
-  ctx.save();ctx.setLineDash([4,4]);
-  ctx.strokeStyle=C.teal+'55';ctx.lineWidth=1;
-  ctx.beginPath();ctx.rect(ox,oy,(b+n)*unit,(a+m)*unit);ctx.stroke();
+  /* dividing guidelines */
+  ctx.save();ctx.setLineDash([4,4]);ctx.strokeStyle='rgba(100,100,100,.3)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(ox+abW,oy);ctx.lineTo(ox+abW,oy+gH);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(ox,oy+abH);ctx.lineTo(ox+gW,oy+abH);ctx.stroke();
   ctx.restore();
 
-  // Dimension labels
-  const A2=a+(sm===+1?m:-m), B2=b+(sn===+1?n:-n);
-  const topLabel=`${B2}`;
-  const leftLabel=`${A2}`;
-  txt(`(b${sn===+1?'+':'-'}n) = ${topLabel}`, ox+(b+n)*unit/2, oy-16, 12, C.teal);
-  ctx.save();ctx.translate(ox-20, oy+(a+m)*unit/2);ctx.rotate(-Math.PI/2);
-  txt(`(a${sm===+1?'+':'-'}m) = ${leftLabel}`, 0, 0, 12, C.teal);ctx.restore();
+  /* dimension labels */
+  const A2=a+sm*m,B2=b+sn*n;
+  ctx.font='bold 13px DM Mono,monospace';
+  ctx.fillStyle='#1a9e8f';ctx.textAlign='center';ctx.textBaseline='bottom';
+  ctx.fillText(`(b${sn>0?'+':'-'}n) = ${B2}`,ox+gW/2,oy-6);
+  ctx.save();ctx.translate(ox-26,oy+gH/2);ctx.rotate(-Math.PI/2);
+  ctx.textBaseline='middle';ctx.textAlign='center';
+  ctx.fillText(`(a${sm>0?'+':'-'}m) = ${A2}`,0,0);ctx.restore();
 
-  // Division lines
-  ctx.save();ctx.setLineDash([3,3]);ctx.strokeStyle=C.text3+'66';ctx.lineWidth=1;
-  ctx.beginPath();ctx.moveTo(ox+abW,oy);ctx.lineTo(ox+abW,oy+(a+m)*unit);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(ox,oy+abH);ctx.lineTo(ox+(b+n)*unit,oy+abH);ctx.stroke();
-  ctx.restore();
+  /* sub-labels on dividers */
+  ctx.font='bold 12px DM Mono,monospace';
+  ctx.fillStyle='#3d8fd6';ctx.textAlign='center';ctx.textBaseline='bottom';
+  ctx.fillText('b='+b,ox+abW/2,oy-2);
+  ctx.fillStyle='#d4920a';ctx.fillText(`${sn>0?'+':'-'}n=${n}`,ox+abW+anW/2,oy-2);
+  ctx.fillStyle='#1a9e8f';ctx.textAlign='right';ctx.textBaseline='middle';
+  ctx.fillText('a='+a,ox-4,oy+abH/2);
+  ctx.fillStyle='#d4920a';ctx.fillText(`${sm>0?'+':'-'}m=${m}`,ox-4,oy+abH+mbH/2);
 
-  updateToggles();
+  updatePieceList();
 }
 
-function buildIdTable(){
-  const tbl=document.getElementById('id-table');
-  const modes=[
-    {sm:+1,sn:+1,label:'(a+m)(b+n)'},
-    {sm:+1,sn:-1,label:'(a+m)(b−n)'},
-    {sm:-1,sn:+1,label:'(a−m)(b+n)'},
-    {sm:-1,sn:-1,label:'(a−m)(b−n)'},
-  ];
-  tbl.innerHTML='';
-  modes.forEach(md=>{
-    const {a,b,m,n}=state;
-    const smn=md.sm*md.sn;
-    const result=(a+md.sm*m)*(b+md.sn*n);
-    const terms=[
-      `ab`,
-      `${md.sn>0?'+':'-'}an`,
-      `${md.sm>0?'+':'-'}mb`,
-      `${smn>0?'+':'-'}mn`,
-    ].join(' ');
-    const isCur=state.sm===md.sm&&state.sn===md.sn;
+/* ── PIECE LIST ── */
+function updatePieceList(){
+  const{a,b,m,n,sm,sn}=state,smn=sm*sn;
+  const signs={ab:+1,an:sn,mb:sm,mn:smn};
+  const ctr=document.getElementById('piece-list');ctr.innerHTML='';
+  ['ab','an','mb','mn'].forEach(key=>{
+    const sign=signs[key],col=pieceColor(key,sign);
+    const val=Math.abs(getVal(key));
     const row=document.createElement('div');
-    row.className='id-row'+(isCur?' current':'');
-    row.innerHTML=`<span class="ir-mode">${md.sm>0?'+':'-'}${md.sn>0?'+':'-'}</span><span class="ir-formula">${md.label} = ${terms}</span><span class="ir-result">${result}</span>`;
-    row.addEventListener('click',()=>{
-      state.sm=md.sm;state.sn=md.sn;
-      updateSignBtns();updateAll();
-    });
+    row.className='piece-row'+(state.sel===key?' sel':'');
+    if(state.sel===key){row.style.borderColor=col;row.style.background=col+'10';}
+    row.innerHTML=`<div class="pr-dot" style="background:${col}30;border-color:${col}"></div>
+      <div class="pr-name" style="color:${col}">${sign>0?'+':'-'}${key}</div>
+      <div class="pr-val" style="color:${col}">${sign>0?'+':'-'}${val}</div>`;
+    row.addEventListener('click',()=>{state.sel=state.sel===key?null:key;draw();});
+    ctr.appendChild(row);
+  });
+}
+
+function getVal(key){
+  const{a,b,m,n,sm,sn}=state,smn=sm*sn;
+  if(key==='ab')return a*b;if(key==='an')return sn*a*n;
+  if(key==='mb')return sm*m*b;if(key==='mn')return smn*m*n;return 0;
+}
+
+/* ── EXPANSION BAR ── */
+function updateExpansion(){
+  const{a,b,m,n,sm,sn}=state,smn=sm*sn;
+  const terms=[
+    {key:'ab',sign:+1,val:a*b,col:PC.ab},
+    {key:'an',sign:sn,val:a*n,col:PC.an},
+    {key:'mb',sign:sm,val:m*b,col:PC.mb},
+    {key:'mn',sign:smn,val:m*n,col:PC.mn},
+  ];
+  const total=(a+sm*m)*(b+sn*n);
+  const bar=document.getElementById('expansion-bar');
+  let html='';
+  terms.forEach((t,i)=>{
+    const isNeg=t.sign<0,col=isNeg?PC.neg:t.col;
+    if(i>0)html+=`<span class="exp-op">${t.sign>0?'+':'−'}</span>`;
+    html+=`<span class="exp-piece" style="color:${col};background:${col}20;border-color:${col}88">${t.key}=${t.val}</span>`;
+  });
+  html+=`<span class="exp-eq">=</span><span class="exp-total">${total}</span>`;
+  bar.innerHTML=html;
+}
+
+/* ── SIGN CASE TABLE ── */
+function buildTable(){
+  const tbl=document.getElementById('id-table');tbl.innerHTML='';
+  [{sm:+1,sn:+1,label:'(a+m)(b+n)'},{sm:+1,sn:-1,label:'(a+m)(b−n)'},
+   {sm:-1,sn:+1,label:'(a−m)(b+n)'},{sm:-1,sn:-1,label:'(a−m)(b−n)'}].forEach(md=>{
+    const{a,b,m,n}=state,smn=md.sm*md.sn,result=(a+md.sm*m)*(b+md.sn*n);
+    const terms=`ab ${md.sn>0?'+':'-'}an ${md.sm>0?'+':'-'}mb ${smn>0?'+':'-'}mn`;
+    const isCur=state.sm===md.sm&&state.sn===md.sn;
+    const row=document.createElement('div');row.className='id-row'+(isCur?' cur':'');
+    row.innerHTML=`<span class="ir-sign">${md.sm>0?'+':'-'}${md.sn>0?'+':'-'}</span>
+      <span class="ir-formula">${md.label} = ${terms}</span>
+      <span class="ir-result">${result}</span>`;
+    row.addEventListener('click',()=>{state.sm=md.sm;state.sn=md.sn;updateSignBtns();updateAll();});
     tbl.appendChild(row);
   });
 }
 
+/* ── INSIGHT ── */
+function updateInsight(){
+  const{sm,sn}=state;
+  const msgs={'1,1':'<strong>Both sides grow (+,+):</strong> all four pieces are added. The mn corner fills in the new outer corner — it\'s naturally included.',
+    '1,-1':'<strong>Right side cut (+,-):</strong> an is removed. But the mn corner sits inside the "an" zone — so mn is <em>subtracted</em>.',
+    '-1,1':'<strong>Bottom cut (-,+):</strong> mb is removed. The mn corner overlaps with mb\'s zone — so mn is <em>subtracted</em>.',
+    '-1,-1':'<strong>Both sides cut (-,-):</strong> an and mb are both removed. But mn was removed twice, so we must <em>add mn back once</em>. This is inclusion-exclusion!'};
+  document.getElementById('insight-section').innerHTML=msgs[`${sm},${sn}`];
+}
+
+/* ── EVENTS ── */
 function updateSignBtns(){
   document.querySelectorAll('[data-sign="sm"]').forEach(b=>{
-    const v=+b.dataset.val;
-    b.classList.remove('active-pos','active-neg');
-    if(v===state.sm) b.classList.add(v>0?'active-pos':'active-neg');
-  });
+    const v=+b.dataset.val;b.classList.remove('active-pos','active-neg');
+    if(v===state.sm)b.classList.add(v>0?'active-pos':'active-neg');});
   document.querySelectorAll('[data-sign="sn"]').forEach(b=>{
-    const v=+b.dataset.val;
-    b.classList.remove('active-pos','active-neg');
-    if(v===state.sn) b.classList.add(v>0?'active-pos':'active-neg');
-  });
-}
-
-function updateToggles(){
-  const ctr=document.getElementById('piece-toggles');
-  ctr.innerHTML='';
-  ['ab','an','mb','mn'].forEach(key=>{
-    const p=PIECES[key];
-    const smn=state.sm*state.sn;
-    const signs={ab:+1,an:state.sn,mb:state.sm,mn:smn};
-    const sign=signs[key];
-    const col=sign>0?p.color:C.red;
-    const val=Math.abs(key==='ab'?state.a*state.b:key==='an'?state.a*state.n:key==='mb'?state.m*state.b:state.m*state.n);
-    const el=document.createElement('div');
-    el.className='piece-toggle'+(state.sel===key?' sel':'');
-    el.style.borderColor=state.sel===key?col:'';
-    el.style.color=col;
-    el.innerHTML=`<div class="pt-swatch" style="background:${col}40;border:1.5px solid ${col}"></div>
-      <div class="pt-name">${sign>0?'+':'-'}${p.label}</div>
-      <div class="pt-val">${sign>0?'+':'-'}${val}</div>`;
-    el.addEventListener('click',()=>{
-      state.sel=state.sel===key?null:key;
-      draw();updateToggles();
-    });
-    ctr.appendChild(el);
-  });
-}
-
-function updateExpansion(){
-  const {a,b,m,n,sm,sn}=state;
-  const smn=sm*sn;
-  const terms=[
-    {key:'ab',sign:+1,val:a*b,col:C.blue},
-    {key:'an',sign:sn,val:a*n,col:C.orange},
-    {key:'mb',sign:sm,val:m*b,col:C.green},
-    {key:'mn',sign:smn,val:m*n,col:C.violet},
-  ];
-  const total=(a+sm*m)*(b+sn*n);
-  const exp=document.getElementById('expansion');
-  let html='';
-  terms.forEach((t,i)=>{
-    const isNeg=t.sign<0;
-    const col=isNeg?C.red:t.col;
-    if(i>0) html+=`<span class="exp-op">${t.sign>0?'+':'−'}</span>`;
-    html+=`<span class="exp-piece" style="color:${col};background:${col}18;border-color:${col}88">${t.key}=${t.val}</span>`;
-  });
-  html+=`<span class="exp-eq">=</span><span class="exp-total">${total}</span>`;
-  exp.innerHTML=html;
-}
-
-function updateInsight(){
-  const {sm,sn}=state;
-  const smn=sm*sn;
-  const insights={
-    '1,1': 'Both sides grow: all four pieces are <strong>added</strong>. The mn corner fills in the extra corner — it\'s naturally included.',
-    '1,-1': 'Right side is cut: an is removed. But mb adds a strip at the bottom — part of that strip (mn) was already in the "an" cut zone, so mn is <strong>subtracted</strong>.',
-    '-1,1': 'Bottom is cut: mb is removed. But an adds a strip on the right — where it overlaps the cut, mn is <strong>subtracted</strong>.',
-    '-1,-1': 'Both sides are cut: an and mb are both removed. But they both removed mn — it was subtracted twice, so we must <strong>add mn back</strong> once. This is inclusion-exclusion!',
-  };
-  document.getElementById('insight-card').innerHTML=`<strong>The corner piece mn:</strong> ${insights[`${sm},${sn}`]}`;
+    const v=+b.dataset.val;b.classList.remove('active-pos','active-neg');
+    if(v===state.sn)b.classList.add(v>0?'active-pos':'active-neg');});
 }
 
 function updateAll(){
-  const {a,b,m,n,sm,sn}=state;
-  document.getElementById('av').textContent=a;
-  document.getElementById('bv').textContent=b;
-  document.getElementById('mv').textContent=m;
-  document.getElementById('nv').textContent=n;
+  const{a,b,m,n,sm,sn}=state;
+  document.getElementById('av').textContent=a;document.getElementById('bv').textContent=b;
+  document.getElementById('mv').textContent=m;document.getElementById('nv').textContent=n;
   document.getElementById('m-lbl').textContent=sm===+1?'+m':'−m';
   document.getElementById('n-lbl').textContent=sn===+1?'+n':'−n';
-  const A2=a+sm*m, B2=b+sn*n;
+  const A2=a+sm*m,B2=b+sn*n;
   document.getElementById('pb-dims').textContent=`(a${sm>0?'+':'-'}m)(b${sn>0?'+':'-'}n)`;
-  document.getElementById('pb-product').textContent=A2*B2;
+  document.getElementById('pb-num').textContent=A2*B2;
   document.getElementById('pb-eq').textContent=`= ${A2} × ${B2}`;
-  draw();
-  updateExpansion();
-  updateInsight();
-  buildIdTable();
+  draw();updateExpansion();updateInsight();buildTable();
 }
 
-// EVENTS
 ['a','b','m','n'].forEach(id=>{
-  document.getElementById(id).addEventListener('input',e=>{
-    state[id]=+e.target.value; updateAll();
-  });
+  document.getElementById(id).addEventListener('input',e=>{state[id]=+e.target.value;updateAll();});
 });
 document.querySelectorAll('[data-sign]').forEach(btn=>{
   btn.addEventListener('click',()=>{
-    const sign=btn.dataset.sign;
-    const val=+btn.dataset.val;
-    state[sign]=val;
-    updateSignBtns();updateAll();
+    const sign=btn.dataset.sign,val=+btn.dataset.val;
+    state[sign]=val;updateSignBtns();updateAll();
   });
 });
 
+/* canvas click to select piece */
 cvs.addEventListener('click',e=>{
   const r=cvs.getBoundingClientRect();
-  const mx=(e.clientX-r.left), my=(e.clientY-r.top);
-  // Try to hit a piece — simplified hit test based on draw positions
-  const {a,b,m,n,sm,sn}=state;
-  const maxU=Math.min(Math.floor((cvs.clientWidth-120)/(b+n)),Math.floor((cvs.clientHeight-100)/(a+m)),46);
-  const unit=Math.max(maxU,12);
-  const hitPad = Math.min(50, Math.floor(cvs.clientHeight*0.10));
-  const ox=Math.max(hitPad,(cvs.clientWidth-(b+n)*unit)/2);
-  const oy=Math.max(hitPad,(cvs.clientHeight-(a+m)*unit)/2);
+  const mx=e.clientX-r.left,my=e.clientY-r.top;
+  const{a,b,m,n,sm,sn}=state;
+  const cols=b+n,rows=a+m;
+  const W=cvs.clientWidth,H=cvs.clientHeight;
+  const pad=Math.max(36,Math.min(56,W*.08,H*.1));
+  const unit=Math.max(10,Math.min(Math.floor((W-pad*2.5)/cols),Math.floor((H-pad*2)/rows),52));
+  const gW=cols*unit,gH=rows*unit;
+  const ox=Math.round((W-gW)/2),oy=Math.round((H-gH)/2);
   const abW=b*unit,abH=a*unit,anW=n*unit,mbH=m*unit;
-  // Simple hit test per piece
-  function inRect(x,y,w,h){ return mx>=x&&mx<=x+w&&my>=y&&my<=y+h; }
-  let hit=null;
-  if(inRect(ox+(sn>0?abW:abW-anW),oy,anW,abH)) hit='an';
-  else if(inRect(ox,oy+(sm>0?abH:abH-mbH),abW,mbH)) hit='mb';
-  else if(sm>0&&sn>0&&inRect(ox+abW,oy+abH,anW,mbH)) hit='mn';
-  else if(sm>0&&sn<0&&inRect(ox+abW-anW,oy+abH,anW,mbH)) hit='mn';
-  else if(sm<0&&sn>0&&inRect(ox+abW,oy+abH-mbH,anW,mbH)) hit='mn';
-  else if(sm<0&&sn<0&&inRect(ox+abW-anW,oy+abH-mbH,anW,mbH)) hit='mn';
-  else if(inRect(ox,oy,abW,abH)) hit='ab';
-  if(hit){ state.sel=state.sel===hit?null:hit; draw(); updateToggles(); }
+  const anX=sn===+1?ox+abW:ox+abW-anW;
+  const mbY=sm===+1?oy+abH:oy+abH-mbH;
+  const mnX=anX,mnY=mbY;
+  function hit(x,y,w,h){return mx>=x&&mx<=x+w&&my>=y&&my<=y+h;}
+  let sel=null;
+  if(hit(anX,oy,anW,abH))sel='an';
+  else if(hit(ox,mbY,abW,mbH))sel='mb';
+  else if(hit(mnX,mnY,anW,mbH))sel='mn';
+  else if(hit(ox,oy,abW,abH))sel='ab';
+  state.sel=state.sel===sel?null:sel;
+  draw();
 });
 
 updateAll();
